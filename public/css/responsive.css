@@ -1,0 +1,462 @@
+/* ==========================================================================
+   レスポンシブデザイン (responsive.css)
+   ========================================================================== */
+
+/* Large Screens (Desktop) */
+@media (min-width: 1024px) {
+    .tab-content {
+        padding: var(--spacing-2xl);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .classroom-container {
+        padding: var(--spacing-2xl);
+    }
+
+    .seating-area {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .grid-settings {
+        max-width: 400px;
+    }
+
+    .action-buttons {
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* Medium Screens (Tablet) */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .app-header {
+        padding: var(--spacing-lg) var(--spacing-xl);
+    }
+
+    .app-header h1 {
+        font-size: var(--text-2xl);
+    }
+
+    .nav-tab {
+        padding: var(--spacing-lg) var(--spacing-xl);
+    }
+
+    .tab-content {
+        padding: var(--spacing-xl);
+    }
+
+    .seating-area {
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+    }
+
+    .action-buttons button {
+        min-width: 120px;
+    }
+
+    .grid-settings {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    .grid-settings button {
+        grid-column: 1 / -1;
+        justify-self: center;
+        max-width: 200px;
+    }
+}
+
+/* Small Screens (Mobile) */
+@media (max-width: 767px) {
+    /* Header Adjustments */
+    .app-header {
+        padding: var(--spacing-md);
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: stretch;
+    }
+
+    .app-header h1 {
+        font-size: var(--text-lg);
+        justify-content: center;
+    }
+
+    .connection-status {
+        align-self: center;
+        font-size: var(--text-xs);
+    }
+
+    /* Navigation Tabs */
+    .nav-tab {
+        flex-direction: row;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm) var(--spacing-md);
+        min-width: 100px;
+    }
+
+    .nav-tab i {
+        font-size: var(--text-sm);
+    }
+
+    .nav-tab span {
+        font-size: var(--text-xs);
+    }
+
+    /* Content Area */
+    .tab-content {
+        padding: var(--spacing-md);
+        min-height: calc(100vh - 160px);
+    }
+
+    /* Input Section */
+    .input-section {
+        padding: var(--spacing-md);
+    }
+
+    .preference-legend {
+        gap: var(--spacing-sm);
+    }
+
+    .legend-item {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--text-xs);
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+    }
+
+    /* Classroom Layout */
+    .classroom-container {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .classroom-board {
+        height: 35px;
+        font-size: var(--text-xs);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .teacher-desk {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+        min-width: 100px;
+    }
+
+    .teacher-desk i {
+        font-size: var(--text-lg);
+    }
+
+    .teacher-desk span {
+        font-size: var(--text-xs);
+    }
+
+    /* Seating Grid - スクロール対応 */
+    .seating-area {
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm);
+        overflow-x: auto;
+        overflow-y: visible;
+        min-height: auto;
+        
+        /* スクロール時のスナップ効果 */
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 5列グリッドの場合の最小幅設定 */
+    .seating-area[data-cols="5"] {
+        grid-template-columns: repeat(5, minmax(60px, 1fr));
+        min-width: 320px;
+    }
+
+    .seating-area[data-cols="4"] {
+        grid-template-columns: repeat(4, minmax(70px, 1fr));
+        min-width: 300px;
+    }
+
+    .seating-area[data-cols="3"] {
+        grid-template-columns: repeat(3, minmax(90px, 1fr));
+        min-width: 280px;
+    }
+
+    .seating-area[data-cols="6"] {
+        grid-template-columns: repeat(6, minmax(50px, 1fr));
+        min-width: 320px;
+    }
+
+    .seating-area[data-cols="7"] {
+        grid-template-columns: repeat(7, minmax(45px, 1fr));
+        min-width: 340px;
+    }
+
+    .seating-area[data-cols="8"] {
+        grid-template-columns: repeat(8, minmax(40px, 1fr));
+        min-width: 350px;
+    }
+
+    /* 座席のサイズ調整 */
+    .seat {
+        min-width: 40px;
+        min-height: 40px;
+        scroll-snap-align: start;
+    }
+
+    .seat-number {
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .seat-content i {
+        font-size: 1rem;
+    }
+
+    .student-name {
+        font-size: 10px;
+        line-height: 1.1;
+        -webkit-line-clamp: 1;
+    }
+
+    .preference-indicator {
+        font-size: 9px;
+        padding: 1px 4px;
+        margin-top: 2px;
+    }
+
+    .preference-label {
+        top: 2px;
+        right: 2px;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    /* Student List */
+    .student-list-section {
+        padding: var(--spacing-md);
+        min-height: 300px;
+    }
+
+    .student-item {
+        padding: var(--spacing-sm);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .student-info .name {
+        font-size: var(--text-sm);
+    }
+
+    .student-info .preferences {
+        font-size: var(--text-xs);
+    }
+
+    .student-actions {
+        align-self: flex-end;
+    }
+
+    /* Settings */
+    .settings-section {
+        padding: var(--spacing-md);
+    }
+
+    .grid-settings {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .instruction {
+        padding: var(--spacing-sm);
+        font-size: var(--text-xs);
+    }
+
+    .room-settings {
+        padding: var(--spacing-md);
+    }
+
+    .room-id-display {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .action-buttons button {
+        min-width: auto;
+        width: 100%;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--text-sm);
+    }
+
+    /* Form Elements */
+    .form-group input {
+        font-size: var(--text-base);
+        padding: var(--spacing-md);
+    }
+
+    /* Messages */
+    .message {
+        padding: var(--spacing-sm);
+        font-size: var(--text-xs);
+    }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+    .app-header h1 {
+        font-size: var(--text-base);
+    }
+
+    .nav-tab span {
+        display: none;
+    }
+
+    .nav-tab {
+        flex-direction: column;
+        padding: var(--spacing-sm);
+        min-width: 60px;
+    }
+
+    .classroom-container {
+        padding: var(--spacing-sm);
+    }
+
+    .seating-area {
+        padding: var(--spacing-xs);
+    }
+
+    .seat {
+        min-width: 35px;
+        min-height: 35px;
+    }
+
+    .seat-number {
+        width: 14px;
+        height: 14px;
+        font-size: 9px;
+    }
+
+    .student-name {
+        font-size: 9px;
+    }
+
+    .preference-indicator {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+
+    .tab-content {
+        padding: var(--spacing-sm);
+    }
+
+    .input-section,
+    .settings-section,
+    .student-list-section,
+    .room-settings {
+        padding: var(--spacing-sm);
+    }
+}
+
+/* スクロールバーのスタイル改善（モバイル用） */
+@media (max-width: 767px) {
+    .seating-area::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .seating-area::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+    }
+
+    .seating-area::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 2px;
+    }
+
+    .student-list::-webkit-scrollbar {
+        width: 4px;
+    }
+}
+
+/* ランドスケープモード (横向き) */
+@media (max-width: 767px) and (orientation: landscape) {
+    .app-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .app-header h1 {
+        font-size: var(--text-sm);
+    }
+
+    .nav-tab {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .tab-content {
+        min-height: calc(100vh - 120px);
+    }
+
+    .classroom-container {
+        padding: var(--spacing-sm);
+    }
+
+    .seating-area {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+}
+
+/* 高コントラストモード */
+@media (prefers-contrast: high) {
+    :root {
+        --border-light: #000000;
+        --border-medium: #000000;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    }
+
+    .seat-desk {
+        border-width: 3px;
+    }
+
+    button {
+        border: 2px solid currentColor;
+    }
+}
+
+/* 印刷スタイル */
+@media print {
+    .app-header,
+    .tab-navigation,
+    .action-buttons {
+        display: none !important;
+    }
+
+    .tab-content {
+        display: block !important;
+        padding: 0;
+    }
+
+    .classroom-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .seating-area {
+        overflow: visible;
+    }
+}

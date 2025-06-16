@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>席替えシミュレーター</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/attendance-settings.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1><i class="fas fa-school"></i> 席替えシミュレーター</h1>
+            <div class="connection-status" id="connectionStatus">
+                <i class="fas fa-sync"></i>
+                <span id="statusText">接続中...</span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tab-navigation">
+            <button class="nav-tab active" data-tab="seat-selection">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>希望席選択</span>
+            </button>
+            <button class="nav-tab" data-tab="student-management">
+                <i class="fas fa-users"></i>
+                <span>生徒リスト</span>
+            </button>
+            <button class="nav-tab" data-tab="seating-assignment">
+                <i class="fas fa-th"></i>
+                <span>席割り当て</span>
+            </button>
+            <button class="nav-tab" data-tab="settings">
+                <i class="fas fa-cog"></i>
+                <span>設定</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Seat Selection Tab -->
+            <section class="tab-content active" id="seat-selection">
+                <div class="input-section">
+                    <div class="student-input-row">
+                        <div class="form-group">
+                            <label for="studentName">生徒名</label>
+                            <input type="text" id="studentName" placeholder="名前を入力してください">
+                        </div>
+                        <div class="form-group">
+                            <label for="studentNumber">出席番号</label>
+                            <select id="studentNumber">
+                                <option value="">選択してください</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="preference-legend">
+                        <div class="legend-item">
+                            <div class="legend-color red"></div>
+                            <span>第一希望</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color orange"></div>
+                            <span>第二希望</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color green"></div>
+                            <span>第三希望</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="classroom-container">
+                    <div class="classroom-board">黒板</div>
+                    <div class="teacher-desk">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>教卓</span>
+                    </div>
+                    <div class="seating-area" id="seatSelectionGrid">
+                        <!-- 動的生成 -->
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="submitSelection" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        希望を提出
+                    </button>
+                    <button id="resetSelection" class="btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        選択をリセット
+                    </button>
+                </div>
+
+                <div class="message-area" id="messageArea"></div>
+            </section>
+
+            <!-- Student Management Tab -->
+            <section class="tab-content" id="student-management">
+                <div class="student-list-section">
+                    <h3><i class="fas fa-user-friends"></i> 登録済み生徒一覧</h3>
+                    <div class="student-list" id="studentList">
+                        <!-- 動的生成 -->
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="clearAllStudents" class="btn-danger">
+                        <i class="fas fa-trash-alt"></i>
+                        全てクリア
+                    </button>
+                </div>
+            </section>
+
+            <!-- Seating Assignment Tab -->
+            <section class="tab-content" id="seating-assignment">
+                <div class="classroom-container">
+                    <div class="classroom-board">黒板</div>
+                    <div class="teacher-desk">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>教卓</span>
+                    </div>
+                    <div class="seating-area" id="assignmentGrid">
+                        <!-- 動的生成 -->
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="assignSeats" class="btn-primary">
+                        <i class="fas fa-magic"></i>
+                        席を割り当てる
+                    </button>
+                    <button id="assignRandom" class="btn-secondary">
+                        <i class="fas fa-random"></i>
+                        ランダム割り当て
+                    </button>
+                    <button id="clearAssignments" class="btn-outline">
+                        <i class="fas fa-broom"></i>
+                        割り当てクリア
+                    </button>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section class="tab-content" id="settings">
+                <div class="settings-section">
+                    <h3><i class="fas fa-cog"></i> 教室設定</h3>
+                    <div class="grid-settings">
+                        <div class="form-group">
+                            <label for="gridRows">行数</label>
+                            <input type="number" id="gridRows" min="3" max="8" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="gridCols">列数</label>
+                            <input type="number" id="gridCols" min="3" max="8" value="5">
+                        </div>
+                        <button id="updateGrid" class="btn-primary">
+                            <i class="fas fa-sync-alt"></i>
+                            更新
+                        </button>
+                    </div>
+
+                    <div class="seat-customization">
+                        <h4>座席の有効/無効設定</h4>
+                        <p class="instruction">無効にしたい座席をクリックしてください</p>
+                        <div class="seating-area" id="customizationGrid">
+                            <!-- 動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="saveSettings" class="btn-primary">
+                            <i class="fas fa-save"></i>
+                            設定を保存
+                        </button>
+                        <button id="resetSettings" class="btn-secondary">
+                            <i class="fas fa-undo"></i>
+                            設定をリセット
+                        </button>
+                    </div>
+                </div>
+                <div class="attendance-settings">
+                    <h4>出席番号管理</h4>
+
+                    <!-- スライダーの説明を追加 -->
+                    <div class="slider-group">
+                        <label for="attendanceRange">出席番号上限</label>
+                        <p class="setting-description">
+                            クラスの最大出席番号を設定します。座席数より多く設定可能です。<br>
+                            <small>例：座席25席でクラス30人の場合、上限を30に設定</small>
+                        </p>
+                        <div class="slider-container">
+                            <input type="range" id="attendanceRange" class="attendance-range" min="25" max="45"
+                                value="35" aria-label="出席番号の上限を設定">
+                        </div>
+                        <div class="slider-output">
+                            <div>
+                                <span class="current-value" id="attendanceValue">35</span>番まで
+                            </div>
+                            <div class="capacity-indicator" id="capacityIndicator">座席数+10</div>
+                        </div>
+                    </div>
+
+                    <!-- 欠番管理の説明を追加 -->
+                    <div class="absent-toggle-group">
+                        <div class="toggle-switch-container">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="absentToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">欠番管理を有効にする</span>
+                        </div>
+                        <p class="setting-description">
+                        使用しない出席番号を個別に設定できます
+                        </p>
+
+                        <div class="absent-numbers-input" id="absentNumbersInput">
+                            <label>各出席番号の設定</label>
+                            <div class="absent-numbers-grid" id="absentNumbersGrid">
+                                <!-- 動的生成 -->
+                            </div>
+                            <div class="absent-summary">
+                                欠番設定: <span class="absent-count" id="absentCount">0</span>個
+                                <span id="absentList"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="room-settings">
+                    <h4>部屋設定</h4>
+                    <div class="room-id-display">
+                        <span>部屋ID: <strong id="roomIdDisplay">default</strong></span>
+                        <button id="changeRoom" class="btn-mini">変更</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="js/socket-manager.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/seat-manager.js"></script>
+    <script src="js/attendance-manager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
