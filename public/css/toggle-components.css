@@ -1,0 +1,240 @@
+/* ==========================================================================
+   トグルスイッチコンポーネント (toggle-components.css)
+   ========================================================================== */
+
+/* メイントグルスイッチ */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: var(--transition-fast);
+    border-radius: 34px;
+    border: 2px solid var(--border-light);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--transition-fast);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* トグルスイッチコンテナ */
+.toggle-switch-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.toggle-label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ミニトグルスイッチ（出席番号用） */
+.mini-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.mini-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.mini-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--success-color);
+    transition: var(--transition-fast);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mini-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 1px;
+    background-color: white;
+    transition: var(--transition-fast);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.mini-toggle-switch input:checked + .mini-toggle-slider {
+    background-color: var(--danger-color);
+}
+
+.mini-toggle-switch input:checked + .mini-toggle-slider:before {
+    transform: translateX(16px);
+}
+
+.mini-toggle-switch input:focus + .mini-toggle-slider {
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 0.2);
+}
+
+/* 無効状態 */
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mini-toggle-switch input:disabled + .mini-toggle-slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ホバー効果 */
+.toggle-slider:hover:not(:has(input:disabled)) {
+    border-color: var(--border-medium);
+}
+
+.mini-toggle-slider:hover:not(:has(input:disabled)) {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* アニメーション効果 */
+.toggle-switch.loading .toggle-slider:before {
+    animation: togglePulse 1s infinite;
+}
+
+@keyframes togglePulse {
+    0%, 100% {
+        box-shadow: var(--shadow-sm);
+    }
+    50% {
+        box-shadow: var(--shadow-md);
+        transform: scale(1.1);
+    }
+}
+
+/* カラーバリエーション */
+.toggle-switch.success input:checked + .toggle-slider {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.toggle-switch.warning input:checked + .toggle-slider {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+}
+
+.toggle-switch.danger input:checked + .toggle-slider {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 767px) {
+    .toggle-switch {
+        width: 50px;
+        height: 28px;
+    }
+    
+    .toggle-slider:before {
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+    }
+    
+    .toggle-switch-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .mini-toggle-switch {
+        width: 32px;
+        height: 18px;
+    }
+    
+    .mini-toggle-slider:before {
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 1px;
+    }
+    
+    .mini-toggle-switch input:checked + .mini-toggle-slider:before {
+        transform: translateX(14px);
+    }
+}
+
+/* 高コントラストモード */
+@media (prefers-contrast: high) {
+    .toggle-slider {
+        border-width: 3px;
+    }
+    
+    .mini-toggle-slider {
+        border-width: 2px;
+    }
+    
+    .toggle-slider:before,
+    .mini-toggle-slider:before {
+        border: 2px solid var(--text-primary);
+    }
+}
+
+/* ダークモードサポート（将来の拡張用） */
+@media (prefers-color-scheme: dark) {
+    .toggle-slider:before,
+    .mini-toggle-slider:before {
+        background-color: #f1f5f9;
+    }
+}

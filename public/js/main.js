@@ -4,10 +4,14 @@
  */
 class SeatSimulatorApp {
     constructor() {
+        this.configManager = null;
         this.socketManager = null;
         this.seatManager = null;
+        this.attendanceManager = null;
         this.uiManager = null;
+        this.footerManager = null;
         this.isInitialized = false;
+        this.version = '2.0.0';
     }
 
     /**
@@ -15,98 +19,118 @@ class SeatSimulatorApp {
      */
     async initialize() {
         try {
-            console.log('席替えシミュレーター初期化開始');
+            console.log(`🎯 席替えシミュレーター v${this.version} 初期化開始`);
 
             // 初期化順序は重要
+            await this.initializeConfigManager();
             await this.initializeSocketManager();
             await this.initializeSeatManager();
+            await this.initializeAttendanceManager();
             await this.initializeUIManager();
+            await this.initializeFooterManager();
 
             // グローバル参照の設定
             this.setupGlobalReferences();
 
             // 初期化完了
             this.isInitialized = true;
-            console.log('席替えシミュレーター初期化完了');
+            console.log('✅ 席替えシミュレーター初期化完了');
 
             // 初期化完了通知
             this.onInitializationComplete();
 
         } catch (error) {
-            console.error('アプリケーション初期化エラー:', error);
+            console.error('❌ アプリケーション初期化エラー:', error);
             this.handleInitializationError(error);
         }
+    }
+
+    /**
+     * Config Manager の初期化
+     */
+    async initializeConfigManager() {
+        console.log('⚙️ ConfigManager初期化中...');
+        
+        this.configManager = new ConfigManager();
+        
+        // 設定の妥当性チェック
+        const validation = this.configManager.validateConfig();
+        if (!validation.valid) {
+            console.warn('設定に問題があります:', validation.errors);
+            // 問題があっても続行（自動修復される）
+        }
+        
+        console.log('✅ ConfigManager初期化完了');
     }
 
     /**
      * Socket Manager の初期化
      */
     async initializeSocketManager() {
-        console.log('SocketManager初期化中...');
+        console.log('🔌 SocketManager初期化中...');
 
         this.socketManager = new SocketManager();
         await this.socketManager.initialize();
 
-        console.log('SocketManager初期化完了');
+        console.log('✅ SocketManager初期化完了');
     }
 
     /**
      * Seat Manager の初期化
      */
     async initializeSeatManager() {
-        console.log('SeatManager初期化中...');
+        console.log('🪑 SeatManager初期化中...');
 
         this.seatManager = new SeatManager(this.socketManager);
 
-        console.log('SeatManager初期化完了');
+        // 設定から初期グリッド設定を読み込み
+        const gridConfig = this.configManager.getGridConfig();
+        this.seatManager.gridConfig = gridConfig;
+
+        console.log('✅ SeatManager初期化完了');
     }
 
     /**
      * Attendance Manager の初期化
      */
     async initializeAttendanceManager() {
-        console.log('AttendanceManager初期化中...');
+        console.log('📋 AttendanceManager初期化中...');
 
         this.attendanceManager = new AttendanceManager(this.socketManager);
 
-        console.log('AttendanceManager初期化完了');
-    }
+        // 設定から初期出席番号設定を読み込み
+        const attendanceConfig = this.configManager.getAttendanceConfig();
+        this.attendanceManager.settings = attendanceConfig;
 
-    // 既存のinitialize()メソッドに追加
-    async initialize() {
-        try {
-            console.log('席替えシミュレーター初期化開始');
-
-            await this.initializeSocketManager();
-            await this.initializeSeatManager();
-            await this.initializeAttendanceManager(); // 追加
-            await this.initializeUIManager();
-
-            this.setupGlobalReferences();
-
-            this.isInitialized = true;
-            console.log('席替えシミュレーター初期化完了');
-
-            this.onInitializationComplete();
-
-        } catch (error) {
-            console.error('アプリケーション初期化エラー:', error);
-            this.handleInitializationError(error);
-        }
+        console.log('✅ AttendanceManager初期化完了');
     }
 
     /**
      * UI Manager の初期化
      */
     async initializeUIManager() {
-        console.log('UIManager初期化中...');
+        console.log('🎨 UIManager初期化中...');
 
         this.uiManager = new UIManager(this.socketManager, this.seatManager);
 
         // 初期化完了通知
         this.uiManager.onInitialized();
 
-        console.log('UIManager初期化完了');
+        console.log('✅ UIManager初期化完了');
+    }
+
+    /**
+     * Footer Manager の初期化
+     */
+    async initializeFooterManager() {
+        console.log('📄 FooterManager初期化中...');
+
+        this.footerManager = new FooterManager(this.socketManager, this.uiManager);
+        
+        // 初期化完了通知
+        this.footerManager.initialize();
+
+        console.log('✅ FooterManager初期化完了');
     }
 
     /**
@@ -115,10 +139,19 @@ class SeatSimulatorApp {
     setupGlobalReferences() {
         // デバッグやコンソールからのアクセス用
         window.app = this;
+        window.configManager = this.configManager;
         window.socketManager = this.socketManager;
         window.seatManager = this.seatManager;
         window.attendanceManager = this.attendanceManager;
         window.uiManager = this.uiManager;
+        window.footerManager = this.footerManager;
+
+        // ユーティリティクラスの確認
+        if (typeof Utils !== 'undefined') {
+            console.log('✅ ユーティリティライブラリが利用可能です');
+        } else {
+            console.warn('⚠️ ユーティリティライブラリが見つかりません');
+        }
     }
 
     /**
@@ -134,20 +167,60 @@ class SeatSimulatorApp {
         const event = new CustomEvent('appInitialized', {
             detail: {
                 timestamp: Date.now(),
-                version: '1.0.0'
+                version: this.version,
+                features: {
+                    configManager: !!this.configManager,
+                    socketManager: !!this.socketManager,
+                    seatManager: !!this.seatManager,
+                    attendanceManager: !!this.attendanceManager,
+                    uiManager: !!this.uiManager,
+                    footerManager: !!this.footerManager
+                }
             }
         });
         document.dispatchEvent(event);
 
+        // 設定の同期
+        this.syncConfigurations();
+
         // サービスワーカーの登録（将来の機能拡張用）
         this.registerServiceWorker();
+
+        // 初期化成功メッセージ
+        if (this.uiManager) {
+            this.uiManager.showMessage('アプリケーションが正常に初期化されました', 'success');
+        }
+    }
+
+    /**
+     * 設定の同期
+     */
+    syncConfigurations() {
+        try {
+            // グリッド設定の同期
+            const gridConfig = this.configManager.getGridConfig();
+            if (this.seatManager) {
+                this.seatManager.gridConfig = gridConfig;
+            }
+
+            // 出席番号設定の同期
+            const attendanceConfig = this.configManager.getAttendanceConfig();
+            if (this.attendanceManager) {
+                this.attendanceManager.settings = attendanceConfig;
+            }
+
+            console.log('⚙️ 設定の同期が完了しました');
+
+        } catch (error) {
+            console.error('⚠️ 設定の同期中にエラーが発生しました:', error);
+        }
     }
 
     /**
      * 初期化エラーの処理
      */
     handleInitializationError(error) {
-        console.error('アプリケーション初期化に失敗しました:', error);
+        console.error('💥 アプリケーション初期化に失敗しました:', error);
 
         // ユーザーにエラーを表示
         const errorElement = document.createElement('div');
@@ -157,10 +230,22 @@ class SeatSimulatorApp {
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>アプリケーションの初期化に失敗しました</h3>
                 <p>ページを再読み込みしてください。問題が続く場合は、ブラウザのキャッシュをクリアしてみてください。</p>
-                <button onclick="window.location.reload()" class="btn-primary">
-                    <i class="fas fa-redo"></i>
-                    ページを再読み込み
-                </button>
+                <div class="error-details">
+                    <details>
+                        <summary>エラー詳細</summary>
+                        <pre>${error.message}</pre>
+                    </details>
+                </div>
+                <div class="error-actions">
+                    <button onclick="window.location.reload()" class="btn-primary">
+                        <i class="fas fa-redo"></i>
+                        ページを再読み込み
+                    </button>
+                    <button onclick="app.resetToDefaults()" class="btn-secondary">
+                        <i class="fas fa-trash"></i>
+                        設定をリセット
+                    </button>
+                </div>
             </div>
         `;
 
@@ -178,6 +263,7 @@ class SeatSimulatorApp {
             z-index: 10000;
             color: white;
             text-align: center;
+            font-family: system-ui, -apple-system, sans-serif;
         `;
 
         const errorContent = errorElement.querySelector('.error-content');
@@ -185,11 +271,37 @@ class SeatSimulatorApp {
             background-color: #1e293b;
             padding: 2rem;
             border-radius: 1rem;
-            max-width: 400px;
+            max-width: 500px;
             margin: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         `;
 
         document.body.appendChild(errorElement);
+    }
+
+    /**
+     * 設定をデフォルトにリセット
+     */
+    resetToDefaults() {
+        try {
+            if (this.configManager) {
+                this.configManager.reset();
+            }
+
+            // ローカルストレージをクリア
+            if (typeof StorageUtils !== 'undefined') {
+                StorageUtils.clear();
+            } else {
+                localStorage.clear();
+            }
+
+            // ページをリロード
+            window.location.reload();
+
+        } catch (error) {
+            console.error('設定リセットエラー:', error);
+            alert('設定のリセットに失敗しました。手動でブラウザのキャッシュをクリアしてください。');
+        }
     }
 
     /**
@@ -200,10 +312,10 @@ class SeatSimulatorApp {
             try {
                 // 本番環境でのみサービスワーカーを登録
                 if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
-                    console.log('サービスワーカーの登録をスキップします（開発環境）');
+                    console.log('🔧 サービスワーカーの登録をスキップします（開発環境）');
                 }
             } catch (error) {
-                console.log('サービスワーカーの登録に失敗しました:', error);
+                console.log('⚠️ サービスワーカーの登録に失敗しました:', error);
             }
         }
     }
@@ -213,11 +325,23 @@ class SeatSimulatorApp {
      */
     getStatus() {
         return {
+            version: this.version,
             isInitialized: this.isInitialized,
+            timestamp: Date.now(),
+            components: {
+                configManager: !!this.configManager,
+                socketManager: !!this.socketManager,
+                seatManager: !!this.seatManager,
+                attendanceManager: !!this.attendanceManager,
+                uiManager: !!this.uiManager,
+                footerManager: !!this.footerManager
+            },
             socket: this.socketManager?.getConnectionStatus(),
             currentTab: this.uiManager?.getCurrentTab(),
             studentsCount: this.uiManager?.getStudents()?.length || 0,
-            gridConfig: this.seatManager?.getGridConfig()
+            gridConfig: this.seatManager?.getGridConfig(),
+            attendanceConfig: this.attendanceManager?.getSettings(),
+            capacity: this.configManager?.checkCapacityConsistency()
         };
     }
 
@@ -225,7 +349,7 @@ class SeatSimulatorApp {
      * アプリケーションのクリーンアップ
      */
     cleanup() {
-        console.log('アプリケーションをクリーンアップ中...');
+        console.log('🧹 アプリケーションをクリーンアップ中...');
 
         try {
             // Socket接続の切断
@@ -233,19 +357,27 @@ class SeatSimulatorApp {
                 this.socketManager.disconnect();
             }
 
+            // 設定の保存
+            if (this.configManager) {
+                this.configManager.saveUserSettings();
+            }
+
             // イベントリスナーの削除
             this.removeEventListeners();
 
             // グローバル参照のクリア
             delete window.app;
+            delete window.configManager;
             delete window.socketManager;
             delete window.seatManager;
+            delete window.attendanceManager;
             delete window.uiManager;
+            delete window.footerManager;
 
-            console.log('アプリケーションのクリーンアップ完了');
+            console.log('✅ アプリケーションのクリーンアップ完了');
 
         } catch (error) {
-            console.error('クリーンアップエラー:', error);
+            console.error('⚠️ クリーンアップエラー:', error);
         }
     }
 
@@ -256,6 +388,7 @@ class SeatSimulatorApp {
         // ページ離脱時のイベントリスナーを削除
         window.removeEventListener('beforeunload', this.handleBeforeUnload);
         window.removeEventListener('unload', this.handleUnload);
+        window.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
     /**
@@ -279,6 +412,24 @@ class SeatSimulatorApp {
     }
 
     /**
+     * ページの表示/非表示切り替え時の処理
+     */
+    handleVisibilityChange = () => {
+        if (document.hidden) {
+            // ページが非表示になった時
+            console.log('📱 ページが非表示になりました');
+        } else {
+            // ページが表示された時
+            console.log('📱 ページが表示されました');
+            // 接続状態を確認
+            if (this.socketManager && !this.socketManager.isConnected) {
+                console.log('🔄 再接続を試行中...');
+                // 必要に応じて再接続処理
+            }
+        }
+    }
+
+    /**
      * デバッグ情報の出力
      */
     debug() {
@@ -288,10 +439,42 @@ class SeatSimulatorApp {
         console.log('🔌 Socket接続状態:', status.socket);
         console.log('📝 生徒数:', status.studentsCount);
         console.log('⚙️ グリッド設定:', status.gridConfig);
+        console.log('📋 出席番号設定:', status.attendanceConfig);
         console.log('📱 現在のタブ:', status.currentTab);
+        console.log('💾 容量整合性:', status.capacity);
+        
+        // 設定の詳細デバッグ
+        if (this.configManager) {
+            this.configManager.debug();
+        }
+        
         console.groupEnd();
 
         return status;
+    }
+
+    /**
+     * パフォーマンス情報の取得
+     */
+    getPerformanceInfo() {
+        if (!window.performance) {
+            return { supported: false };
+        }
+
+        const navigation = window.performance.getEntriesByType('navigation')[0];
+        const marks = window.performance.getEntriesByType('mark');
+        
+        return {
+            supported: true,
+            loadTime: navigation ? navigation.loadEventEnd - navigation.loadEventStart : null,
+            domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart : null,
+            marks: marks.map(mark => ({ name: mark.name, startTime: mark.startTime })),
+            memory: window.performance.memory ? {
+                used: window.performance.memory.usedJSHeapSize,
+                total: window.performance.memory.totalJSHeapSize,
+                limit: window.performance.memory.jsHeapSizeLimit
+            } : null
+        };
     }
 }
 
@@ -312,6 +495,7 @@ async function startApp() {
     // ページ離脱時のイベントリスナーを設定
     window.addEventListener('beforeunload', app.handleBeforeUnload);
     window.addEventListener('unload', app.handleUnload);
+    window.addEventListener('visibilitychange', app.handleVisibilityChange);
 
     // 初期化開始
     await app.initialize();
@@ -323,10 +507,12 @@ async function startApp() {
  * エラーハンドリング
  */
 window.addEventListener('error', (event) => {
-    console.error('未処理のエラー:', event.error);
+    console.error('💥 未処理のエラー:', event.error);
 
     // 重要なエラーの場合はユーザーに通知
-    if (window.uiManager && event.error && !event.error.toString().includes('ResizeObserver')) {
+    if (window.uiManager && event.error && 
+        !event.error.toString().includes('ResizeObserver') &&
+        !event.error.toString().includes('Non-Error promise rejection')) {
         window.uiManager.showMessage(
             'アプリケーションでエラーが発生しました。ページを再読み込みしてください。',
             'error'
@@ -335,10 +521,13 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('未処理のPromise拒否:', event.reason);
+    console.error('💥 未処理のPromise拒否:', event.reason);
 
     // Socket.io関連のエラーは通常の動作なので無視
-    if (event.reason && event.reason.toString().includes('socket.io')) {
+    if (event.reason && (
+        event.reason.toString().includes('socket.io') ||
+        event.reason.toString().includes('timeout')
+    )) {
         event.preventDefault();
         return;
     }
@@ -358,23 +547,41 @@ window.debugApp = () => {
     if (window.app) {
         return window.app.debug();
     } else {
-        console.log('アプリケーションがまだ初期化されていません');
+        console.log('⚠️ アプリケーションがまだ初期化されていません');
         return null;
     }
 };
 
-// コンソールでの使い方説明
-console.log(`
-🎯 席替えシミュレーター
-デバッグコマンド:
-- debugApp() : アプリケーション状態の表示
-- app.getStatus() : 詳細ステータス
-- socketManager.getConnectionStatus() : 接続状態
-- seatManager.getGridConfig() : グリッド設定
-- uiManager.getStudents() : 生徒一覧
-`);
+window.getAppStatus = () => {
+    if (window.app) {
+        return window.app.getStatus();
+    } else {
+        return { error: 'アプリケーション未初期化' };
+    }
+};
+
+window.getPerformanceInfo = () => {
+    if (window.app) {
+        return window.app.getPerformanceInfo();
+    } else {
+        return { error: 'アプリケーション未初期化' };
+    }
+};
 
 // アプリケーション開始
 startApp().catch(error => {
-    console.error('アプリケーションの開始に失敗しました:', error);
+    console.error('💥 アプリケーションの開始に失敗しました:', error);
+    
+    // フォールバック: 最小限のエラー表示
+    document.body.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui;">
+            <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 1rem; border: 1px solid #e2e8f0;">
+                <h2 style="color: #dc2626; margin-bottom: 1rem;">⚠️ 初期化エラー</h2>
+                <p style="margin-bottom: 1rem;">アプリケーションの初期化に失敗しました。</p>
+                <button onclick="window.location.reload()" style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                    ページを再読み込み
+                </button>
+            </div>
+        </div>
+    `;
 });

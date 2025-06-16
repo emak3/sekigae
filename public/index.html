@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/attendance-settings.css">
+    <link rel="stylesheet" href="css/toggle-components.css">
+    <link rel="stylesheet" href="css/footer.css">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -191,10 +193,12 @@
                         </button>
                     </div>
                 </div>
-                <div class="attendance-settings">
-                    <h4>出席番号管理</h4>
 
-                    <!-- スライダーの説明を追加 -->
+                <!-- 出席番号管理設定 -->
+                <div class="attendance-settings">
+                    <h4><i class="fas fa-list-ol"></i> 出席番号管理</h4>
+
+                    <!-- スライダー設定 -->
                     <div class="slider-group">
                         <label for="attendanceRange">出席番号上限</label>
                         <p class="setting-description">
@@ -213,7 +217,7 @@
                         </div>
                     </div>
 
-                    <!-- 欠番管理の説明を追加 -->
+                    <!-- 欠番管理設定 -->
                     <div class="absent-toggle-group">
                         <div class="toggle-switch-container">
                             <label class="toggle-switch">
@@ -223,7 +227,7 @@
                             <span class="toggle-label">欠番管理を有効にする</span>
                         </div>
                         <p class="setting-description">
-                        使用しない出席番号を個別に設定できます
+                            使用しない出席番号を個別に設定できます
                         </p>
 
                         <div class="absent-numbers-input" id="absentNumbersInput">
@@ -238,23 +242,123 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 部屋設定 -->
                 <div class="room-settings">
-                    <h4>部屋設定</h4>
+                    <h4><i class="fas fa-door-open"></i> 部屋設定</h4>
                     <div class="room-id-display">
                         <span>部屋ID: <strong id="roomIdDisplay">default</strong></span>
-                        <button id="changeRoom" class="btn-mini">変更</button>
+                        <button id="changeRoom" class="btn-mini">
+                            <i class="fas fa-edit"></i>
+                            変更
+                        </button>
                     </div>
                 </div>
             </section>
         </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <!-- 左側: アプリ情報 -->
+                <div class="footer-left">
+                    <div class="footer-app-info">
+                        <i class="fas fa-school"></i>
+                        <span>席替えシミュレーター</span>
+                    </div>
+                    <div class="footer-version" id="footerVersion">v2.0.0</div>
+                    <div class="footer-copyright">
+                        © 2025 emak3. All rights reserved.
+                    </div>
+                </div>
+
+                <!-- 中央: ステータス情報 -->
+                <div class="footer-center">
+                    <div class="footer-status">
+                        <div class="footer-connection" id="footerConnection">
+                            <i class="fas fa-wifi"></i>
+                            <span id="footerConnectionText">接続中...</span>
+                        </div>
+                        <div class="footer-stats" id="footerStats">
+                            <div class="footer-stat">
+                                <i class="fas fa-users"></i>
+                                <span id="footerStudentCount">0</span>人
+                            </div>
+                            <div class="footer-stat">
+                                <i class="fas fa-th"></i>
+                                <span id="footerSeatCount">25</span>席
+                            </div>
+                            <div class="footer-stat">
+                                <i class="fas fa-clock"></i>
+                                <span id="footerLastUpdate">未更新</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側: リンクとアクション -->
+                <div class="footer-right">
+                    <div class="footer-links">
+                        <a href="javascript:void(0)" class="footer-link" onclick="showHelp()">
+                            <i class="fas fa-question-circle"></i>
+                            ヘルプ
+                        </a>
+                        <a href="javascript:void(0)" class="footer-link" onclick="showKeyboardShortcuts()">
+                            <i class="fas fa-keyboard"></i>
+                            ショートカット
+                        </a>
+                        <a href="javascript:void(0)" class="footer-link" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                            エクスポート
+                        </a>
+                    </div>
+                    <div class="footer-actions">
+                        <button class="footer-btn" onclick="debugApp()">
+                            <i class="fas fa-bug"></i>
+                            デバッグ
+                        </button>
+                        <button class="footer-btn" onclick="showAbout()">
+                            <i class="fas fa-info-circle"></i>
+                            About
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- フッター最下部 -->
+            <div class="footer-bottom">
+                <div class="footer-build-info">
+                    <div class="footer-build-item">
+                        <i class="fas fa-code"></i>
+                        <span>Build: <span id="footerBuildDate">-</span></span>
+                    </div>
+                    <div class="footer-build-item">
+                        <i class="fas fa-server"></i>
+                        <span>Room: <span id="footerRoomId">default</span></span>
+                    </div>
+                </div>
+                <div class="footer-tech-info">
+                    <span>Powered by Socket.IO & Express.js</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <!-- Utility Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/config-manager.js"></script>
+    
+    <!-- Core Scripts -->
     <script src="js/socket-manager.js"></script>
-    <script src="js/ui-manager.js"></script>
-    <script src="js/seat-manager.js"></script>
     <script src="js/attendance-manager.js"></script>
+    <script src="js/seat-manager.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/footer-manager.js"></script>
+    
+    <!-- Main Application -->
     <script src="js/main.js"></script>
 </body>
 

@@ -6,7 +6,7 @@ class AttendanceManager {
     constructor(socketManager) {
         this.socketManager = socketManager;
         this.settings = {
-            maxNumber: 35,
+            maxNumber: 25,
             seatCapacity: 25,
             absentEnabled: false,
             absentNumbers: []
@@ -148,8 +148,8 @@ class AttendanceManager {
     }
 
     /**
-    * 欠番トグル表示状態の更新
-    */
+     * 欠番トグル表示状態の更新
+     */
     updateAbsentToggleDisplay() {
         const inputContainer = document.getElementById('absentNumbersInput');
         if (!inputContainer) return;
@@ -162,6 +162,7 @@ class AttendanceManager {
             inputContainer.classList.remove('active');
         }
     }
+
     /**
      * スライダー表示の更新
      */
@@ -205,43 +206,9 @@ class AttendanceManager {
             indicator.textContent = `座席数+${excess}`;
             indicator.className = 'capacity-indicator warning';
         } else {
-            indicator.textContent = `座席数+${excess} (要注意)`;
+            indicator.textContent = `座席数+${excess}`;
             indicator.className = 'capacity-indicator error';
         }
-    }
-
-    /**
-     * 欠番トグルの初期化
-     */
-    initializeAbsentToggle() {
-        const toggle = document.getElementById('absentToggle');
-        const inputContainer = document.querySelector('.absent-numbers-input');
-
-        if (!toggle || !inputContainer) return;
-
-        // 初期状態設定
-        toggle.checked = this.settings.absentEnabled;
-        inputContainer.className = `absent-numbers-input ${this.settings.absentEnabled ? 'active' : ''}`;
-
-        // トグルイベント
-        toggle.addEventListener('change', (e) => {
-            this.settings.absentEnabled = e.target.checked;
-            inputContainer.className = `absent-numbers-input ${e.target.checked ? 'active' : ''}`;
-
-            if (e.target.checked) {
-                this.generateAbsentToggles();
-            }
-
-            this.updateAbsentSummary();
-            this.saveSettings();
-        });
-
-        // 初期生成
-        if (this.settings.absentEnabled) {
-            this.generateAbsentToggles();
-        }
-
-        this.updateAbsentSummary();
     }
 
     /**
@@ -324,8 +291,8 @@ class AttendanceManager {
     }
 
     /**
- * 欠番サマリーの更新
- */
+     * 欠番サマリーの更新
+     */
     updateAbsentSummary() {
         const countElement = document.getElementById('absentCount');
         const listElement = document.getElementById('absentList');
@@ -373,46 +340,34 @@ class AttendanceManager {
     }
 
     /**
-     * 欠番リストの更新
-     */
-    updateAbsentNumbers(inputValue) {
-        this.settings.absentNumbers = [];
-
-        if (inputValue.trim()) {
-            const numbers = inputValue.split(',')
-                .map(n => parseInt(n.trim()))
-                .filter(n => !isNaN(n) && n > 0 && n <= this.settings.maxNumber);
-
-            this.settings.absentNumbers = [...new Set(numbers)].sort((a, b) => a - b);
-        }
-    }
-
-    /**
-     * 欠番プレビューの更新
-     */
-    updateAbsentPreview() {
-        const preview = document.getElementById('absentPreview');
-        if (!preview) return;
-
-        if (!this.settings.absentEnabled || this.settings.absentNumbers.length === 0) {
-            preview.textContent = '欠番なし';
-        } else {
-            preview.textContent = `欠番: ${this.settings.absentNumbers.join(', ')}番`;
-        }
-    }
-
-    /**
-     * 有効な出席番号リストを取得（欠番を除外）
+     * 有効な出席番号リストを取得（欠番を除外）- 修正版
      */
     getValidNumbers() {
         const numbers = [];
         for (let i = 1; i <= this.settings.maxNumber; i++) {
-            if (!this.settings.absentEnabled || !this.settings.absentNumbers.includes(i)) {
-                numbers.push(i);
+            // 欠番管理が有効で、かつ欠番リストに含まれている場合は除外
+            if (this.settings.absentEnabled && this.settings.absentNumbers.includes(i)) {
+                continue;
             }
+            numbers.push(i);
         }
-        console.log('有効な出席番号:', numbers.length + '個');
+        console.log('有効な出席番号（欠番除外後）:', numbers.length + '個', numbers);
         return numbers;
+    }
+
+    /**
+     * 番号が有効かどうかをチェック
+     */
+    isValidNumber(number) {
+        if (number < 1 || number > this.settings.maxNumber) {
+            return false;
+        }
+
+        if (this.settings.absentEnabled && this.settings.absentNumbers.includes(number)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

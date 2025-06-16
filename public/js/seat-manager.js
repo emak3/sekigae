@@ -458,7 +458,7 @@ class SeatManager {
         console.log('自動割り当て完了 - 現在の割り当て状況:', this.assignedSeats.filter(s => s !== null));
 
         console.log('未使用出席番号の空席配置開始');
-        // 残りの空席に未使用の出席番号をランダム配置
+        // 残りの空席に未使用の出席番号をランダム配置（欠番を除外）
         this.fillEmptySeatsWithUnusedNumbers();
 
         console.log('全割り当て完了 - 最終的な割り当て状況:', this.assignedSeats.filter(s => s !== null));
@@ -514,6 +514,16 @@ class SeatManager {
 
         console.log('出席番号未選択の生徒:', studentsWithoutNumbers.map(s => s.name));
 
+        // AttendanceManagerから有効な出席番号を取得（欠番を除外）
+        let availableNumbers = [];
+        if (window.attendanceManager) {
+            availableNumbers = window.attendanceManager.getValidNumbers();
+        } else {
+            // フォールバック: 従来の方法
+            const totalSeats = this.gridConfig.rows * this.gridConfig.cols - this.gridConfig.disabledSeats.length;
+            availableNumbers = Array.from({ length: totalSeats }, (_, i) => i + 1);
+        }
+
         // 使用済み出席番号を取得
         const usedNumbers = this.students
             .filter(student => student.number)
@@ -521,20 +531,13 @@ class SeatManager {
 
         console.log('使用済み番号:', usedNumbers);
 
-        // 有効な出席番号の範囲を計算
-        const totalSeats = this.gridConfig.rows * this.gridConfig.cols - this.gridConfig.disabledSeats.length;
-        const availableNumbers = [];
+        // 未使用かつ有効な番号を取得
+        const unusedNumbers = availableNumbers.filter(num => !usedNumbers.includes(num));
 
-        for (let i = 1; i <= totalSeats; i++) {
-            if (!usedNumbers.includes(i)) {
-                availableNumbers.push(i);
-            }
-        }
-
-        console.log('利用可能な番号:', availableNumbers);
+        console.log('利用可能な未使用番号:', unusedNumbers);
 
         // 出席番号をシャッフル
-        const shuffledNumbers = this.shuffleArray([...availableNumbers]);
+        const shuffledNumbers = this.shuffleArray([...unusedNumbers]);
 
         // 空席を取得
         const emptySeats = this.getEmptySeats();
@@ -570,6 +573,10 @@ class SeatManager {
             window.uiManager.updateStudentNumberOptions();
         }
     }
+
+    /**
+     * 残りの生徒をランダムに割り当て
+     */
     assignRemainingStudents(students) {
         const unassignedStudents = students.filter(student => !student.assigned);
         const emptySeats = this.getEmptySeats();
@@ -580,6 +587,7 @@ class SeatManager {
                 const seatIndex = shuffledEmptySeats.pop();
                 this.assignedSeats[seatIndex] = {
                     name: student.name,
+                    number: student.number,
                     preference: 0 // ランダム割り当て
                 };
                 student.assigned = true;
@@ -627,7 +635,7 @@ class SeatManager {
             }
         });
 
-        // 残りの空席に未使用の出席番号をランダム配置
+        // 残りの空席に未使用の出席番号をランダム配置（欠番を除外）
         this.fillEmptySeatsWithUnusedNumbers();
 
         // データを保存
@@ -661,9 +669,21 @@ class SeatManager {
     }
 
     /**
-     * 未使用出席番号で空席をランダムに埋める
+     * 未使用出席番号で空席をランダムに埋める（欠番を除外）
      */
     fillEmptySeatsWithUnusedNumbers() {
+        // AttendanceManagerから有効な出席番号を取得（欠番を除外）
+        let availableNumbers = [];
+        if (window.attendanceManager) {
+            availableNumbers = window.attendanceManager.getValidNumbers();
+            console.log('AttendanceManagerから取得した有効な番号:', availableNumbers);
+        } else {
+            // フォールバック: 従来の方法
+            const totalSeats = this.gridConfig.rows * this.gridConfig.cols - this.gridConfig.disabledSeats.length;
+            availableNumbers = Array.from({ length: totalSeats }, (_, i) => i + 1);
+            console.log('フォールバック: 座席数ベースの番号:', availableNumbers);
+        }
+
         // 現在使用されている出席番号を取得
         const usedNumbers = [];
 
@@ -676,17 +696,10 @@ class SeatManager {
 
         console.log('実際の生徒が使用中の番号:', usedNumbers);
 
-        // 有効な出席番号の範囲を計算
-        const totalSeats = this.gridConfig.rows * this.gridConfig.cols - this.gridConfig.disabledSeats.length;
-        const unusedNumbers = [];
+        // 未使用かつ有効な番号を取得
+        const unusedNumbers = availableNumbers.filter(num => !usedNumbers.includes(num));
 
-        for (let i = 1; i <= totalSeats; i++) {
-            if (!usedNumbers.includes(i)) {
-                unusedNumbers.push(i);
-            }
-        }
-
-        console.log('未使用の出席番号:', unusedNumbers);
+        console.log('未使用の有効な出席番号:', unusedNumbers);
 
         // 空席を取得
         const emptySeats = this.getEmptySeats();
@@ -719,6 +732,10 @@ class SeatManager {
 
         console.log(`未使用番号による空席埋め完了: ${assignCount}席を追加配置`);
     }
+
+    /**
+     * 配列をシャッフル
+     */
     shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -796,6 +813,7 @@ class SeatManager {
         // 割り当て配列のサイズ調整
         this.adjustAssignedSeatsArray();
 
+        // AttendanceManagerの座席数更新
         if (window.attendanceManager) {
             const validSeats = newTotal - this.gridConfig.disabledSeats.length;
             window.attendanceManager.updateSeatCapacity(validSeats);

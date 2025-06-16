@@ -213,6 +213,10 @@ class UIManager {
             this.studentNumberSelect.appendChild(option);
         });
     }
+
+    /**
+     * タブ切り替え時の処理
+     */
     handleTabSwitch(tabId) {
         switch (tabId) {
             case 'seat-selection':
@@ -366,7 +370,7 @@ class UIManager {
     }
 
     /**
-     * グリッド更新の処理
+     * グリッド更新の処理（修正版）
      */
     handleUpdateGrid() {
         const rows = parseInt(this.gridRowsInput?.value);
@@ -375,8 +379,14 @@ class UIManager {
         if (this.seatManager.updateGridSettings(rows, cols)) {
             // 成功した場合、出席番号の選択肢を更新
             this.updateStudentNumberOptions();
-            // 設定タブに切り替え
-            this.switchTab('settings');
+            
+            // グリッドの即座更新
+            this.seatManager.renderAllGrids();
+            
+            // 現在のタブに応じて適切な再描画を実行
+            this.handleTabSwitch(this.currentTab);
+            
+            console.log('グリッド更新完了 - 即座に再描画しました');
         }
     }
 
