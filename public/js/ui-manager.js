@@ -58,7 +58,13 @@ class UIManager {
 
         // Form submissions
         if (this.submitButton) {
-            this.submitButton.addEventListener('click', () => this.handleSubmitSelection());
+            this.submitButton.addEventListener('click', () => {
+                // 選択を確定してから提出処理
+                if (window.selectionStateManager) {
+                    window.selectionStateManager.confirmSelection();
+                }
+                this.handleSubmitSelection();
+            });
         }
 
         if (this.resetButton) {
@@ -146,6 +152,51 @@ class UIManager {
         this.socketManager.on('localModeEnabled', () => {
             this.showMessage('オフラインモードで動作しています', 'warning');
         });
+
+        // 【新規追加】一時保持関連のイベント処理
+        this.socketManager.on('numberConflictDetected', (data) => {
+            console.log('番号競合検出:', data);
+            if (window.selectionStateManager) {
+                window.selectionStateManager.handleNumberConflict(data);
+            }
+        });
+
+        this.socketManager.on('temporaryHoldExpired', (data) => {
+            console.log('一時保持期限切れ:', data);
+            if (window.selectionStateManager) {
+                window.selectionStateManager.handleHoldExpired(data);
+            }
+        });
+
+        this.socketManager.on('numberReleased', (data) => {
+            console.log('番号解除通知:', data);
+            // 他のユーザーが番号を解除した場合の処理
+            this.updateStudentNumberOptions();
+        });
+    }
+
+    /**
+ * 【新規追加】選択状態のリセット（外部から呼び出し用）
+ */
+    resetStudentNumberSelection() {
+        const studentNumberSelect = document.getElementById('studentNumber');
+        if (studentNumberSelect) {
+            studentNumberSelect.value = '';
+            studentNumberSelect.classList.remove('temporary-hold', 'confirmed-selection', 'conflict-warning');
+        }
+
+        const formGroup = document.getElementById('studentNumberGroup');
+        if (formGroup) {
+            formGroup.classList.remove('temporary-hold', 'confirmed', 'conflict');
+        }
+
+        const holdDisplayElement = document.getElementById('numberHoldTime');
+        if (holdDisplayElement) {
+            holdDisplayElement.style.display = 'none';
+            holdDisplayElement.classList.remove('active');
+        }
+
+        console.log('出席番号選択をリセットしました');
     }
 
     /**
@@ -173,10 +224,43 @@ class UIManager {
     }
 
     /**
-     * 出席番号の選択肢を更新
+ * 【新規追加】select要素のテキスト色を強制修正
+ */
+    forceSelectTextColor() {
+        const studentNumberSelect = document.getElementById('studentNumber');
+        if (studentNumberSelect) {
+            // DOM直接操作で確実にテキスト色を設定
+            studentNumberSelect.style.color = '#000000';
+            studentNumberSelect.style.backgroundColor = '#ffffff';
+            studentNumberSelect.style.setProperty('color', '#000000', 'important');
+            studentNumberSelect.style.setProperty('background-color', '#ffffff', 'important');
+
+            // option要素も修正
+            const options = studentNumberSelect.querySelectorAll('option');
+            options.forEach(option => {
+                option.style.color = '#000000';
+                option.style.backgroundColor = '#ffffff';
+                option.style.setProperty('color', '#000000', 'important');
+                option.style.setProperty('background-color', '#ffffff', 'important');
+            });
+
+            console.log('UIManager: テキスト色を強制修正しました');
+        }
+    }
+
+    /**
+     * 出席番号の選択肢を更新（強制テキスト色修正版）
      */
     updateStudentNumberOptions() {
         if (!this.studentNumberSelect) return;
+
+        // 現在の選択を記録
+        const currentValue = this.studentNumberSelect.value;
+        console.log('出席番号選択肢更新 - 現在の選択:', currentValue);
+
+        // SelectionStateManagerの状態を確認
+        const selectionState = window.selectionStateManager ?
+            window.selectionStateManager.getCurrentSelection() : null;
 
         // 出席番号管理の設定を取得
         const attendanceSettings = window.attendanceManager ? window.attendanceManager.getSettings() : null;
@@ -202,16 +286,73 @@ class UIManager {
         availableNumbers.forEach(number => {
             const option = document.createElement('option');
             option.value = number;
-            option.textContent = number;
 
-            // 使用済みの番号は無効化
-            if (usedNumbers.includes(number)) {
+            const isUsed = usedNumbers.includes(number);
+            const isCurrentSelection = selectionState && selectionState.number === number;
+
+            // 選択肢のテキストと状態を設定
+            if (isCurrentSelection) {
+                // 現在選択中の番号
+                if (selectionState.isTemporaryHold) {
+                    option.textContent = isUsed ?
+                        `${number} (選択中 - 使用済み)` :
+                        `${number} (選択中)`;
+                    option.className = 'selected-by-me';
+                    // 一時的に有効化（使用済みでも選択を維持）
+                    option.disabled = false;
+                } else {
+                    option.textContent = `${number} (確定済み)`;
+                    option.className = 'selected-by-me';
+                    option.disabled = false;
+                }
+            } else if (isUsed) {
+                // 他の人が使用済み
+                option.textContent = `${number} (使用済み)`;
+                option.className = 'occupied';
                 option.disabled = true;
-                option.textContent += ' (使用済み)';
+            } else {
+                // 利用可能
+                option.textContent = number.toString();
+                option.disabled = false;
             }
 
             this.studentNumberSelect.appendChild(option);
         });
+
+        // 【追加】テキスト色を強制修正
+        this.forceSelectTextColor();
+
+        // 選択状態を復元
+        if (selectionState && selectionState.number) {
+            this.studentNumberSelect.value = selectionState.number;
+
+            // フォームグループのクラスを更新
+            const formGroup = document.getElementById('studentNumberGroup');
+            if (formGroup) {
+                formGroup.classList.remove('temporary-hold', 'confirmed', 'conflict');
+
+                if (selectionState.isTemporaryHold) {
+                    formGroup.classList.add('temporary-hold');
+                } else {
+                    formGroup.classList.add('confirmed');
+                }
+
+                // 使用済み番号の場合は競合表示
+                if (usedNumbers.includes(selectionState.number)) {
+                    formGroup.classList.add('conflict');
+                }
+            }
+        } else if (currentValue) {
+            // SelectionStateManagerがない場合の従来の復元
+            this.studentNumberSelect.value = currentValue;
+        }
+
+        // 【追加】遅延してもう一度テキスト色を修正
+        setTimeout(() => {
+            this.forceSelectTextColor();
+        }, 100);
+
+        console.log('出席番号選択肢更新完了');
     }
 
     /**
@@ -277,6 +418,13 @@ class UIManager {
             return;
         }
 
+        // 使用済み番号の最終チェック
+        const usedNumbers = this.students.map(student => student.number).filter(num => num);
+        if (usedNumbers.includes(number)) {
+            this.showMessage('この出席番号は既に使用されています。別の番号を選択してください。', 'error');
+            return;
+        }
+
         // 既存の生徒をチェック（名前または出席番号で）
         const existingByName = this.students.findIndex(student => student.name === name);
         const existingByNumber = this.students.findIndex(student => student.number === number);
@@ -312,6 +460,11 @@ class UIManager {
                 preferences: [...selectedSeats],
                 assigned: false
             });
+        }
+
+        // 選択状態をクリア
+        if (window.selectionStateManager) {
+            window.selectionStateManager.clearSelection();
         }
 
         // データを保存
@@ -379,13 +532,13 @@ class UIManager {
         if (this.seatManager.updateGridSettings(rows, cols)) {
             // 成功した場合、出席番号の選択肢を更新
             this.updateStudentNumberOptions();
-            
+
             // グリッドの即座更新
             this.seatManager.renderAllGrids();
-            
+
             // 現在のタブに応じて適切な再描画を実行
             this.handleTabSwitch(this.currentTab);
-            
+
             console.log('グリッド更新完了 - 即座に再描画しました');
         }
     }
@@ -642,8 +795,14 @@ class UIManager {
         // 既存の処理
         this.switchTab('seat-selection');
 
-        // AttendanceManagerのUI初期化を少し遅延
+        // SelectionStateManagerの初期化
         setTimeout(() => {
+            if (window.SelectionStateManager) {
+                window.selectionStateManager = new SelectionStateManager(this.socketManager, this);
+                console.log('SelectionStateManager を初期化しました');
+            }
+
+            // AttendanceManagerのUI初期化
             if (window.attendanceManager) {
                 console.log('AttendanceManager UI初期化を実行');
                 window.attendanceManager.initializeUI();
@@ -652,11 +811,19 @@ class UIManager {
             }
 
             this.updateStudentNumberOptions();
+
+            // 【追加】初期化後にテキスト色を強制修正
+            this.forceSelectTextColor();
         }, 100);
 
         if (this.studentNameInput) {
             this.studentNameInput.focus();
         }
+
+        // 【追加】定期的にテキスト色をチェック
+        setInterval(() => {
+            this.forceSelectTextColor();
+        }, 3000); // 3秒ごと
 
         console.log('UIManager初期化完了');
     }

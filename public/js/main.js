@@ -50,16 +50,16 @@ class SeatSimulatorApp {
      */
     async initializeConfigManager() {
         console.log('⚙️ ConfigManager初期化中...');
-        
+
         this.configManager = new ConfigManager();
-        
+
         // 設定の妥当性チェック
         const validation = this.configManager.validateConfig();
         if (!validation.valid) {
             console.warn('設定に問題があります:', validation.errors);
             // 問題があっても続行（自動修復される）
         }
-        
+
         console.log('✅ ConfigManager初期化完了');
     }
 
@@ -126,7 +126,7 @@ class SeatSimulatorApp {
         console.log('📄 FooterManager初期化中...');
 
         this.footerManager = new FooterManager(this.socketManager, this.uiManager);
-        
+
         // 初期化完了通知
         this.footerManager.initialize();
 
@@ -145,6 +145,7 @@ class SeatSimulatorApp {
         window.attendanceManager = this.attendanceManager;
         window.uiManager = this.uiManager;
         window.footerManager = this.footerManager;
+        window.selectionStateManager = null;
 
         // ユーティリティクラスの確認
         if (typeof Utils !== 'undefined') {
@@ -334,14 +335,16 @@ class SeatSimulatorApp {
                 seatManager: !!this.seatManager,
                 attendanceManager: !!this.attendanceManager,
                 uiManager: !!this.uiManager,
-                footerManager: !!this.footerManager
+                footerManager: !!this.footerManager,
+                selectionStateManager: !!window.selectionStateManager
             },
             socket: this.socketManager?.getConnectionStatus(),
             currentTab: this.uiManager?.getCurrentTab(),
             studentsCount: this.uiManager?.getStudents()?.length || 0,
             gridConfig: this.seatManager?.getGridConfig(),
             attendanceConfig: this.attendanceManager?.getSettings(),
-            capacity: this.configManager?.checkCapacityConsistency()
+            capacity: this.configManager?.checkCapacityConsistency(),
+            selectionState: window.selectionStateManager?.getCurrentSelection()
         };
     }
 
@@ -352,6 +355,12 @@ class SeatSimulatorApp {
         console.log('🧹 アプリケーションをクリーンアップ中...');
 
         try {
+            // 【新規追加】SelectionStateManagerのクリーンアップ
+            if (window.selectionStateManager) {
+                window.selectionStateManager.cleanup();
+                delete window.selectionStateManager;
+            }
+
             // Socket接続の切断
             if (this.socketManager) {
                 this.socketManager.disconnect();
@@ -442,12 +451,12 @@ class SeatSimulatorApp {
         console.log('📋 出席番号設定:', status.attendanceConfig);
         console.log('📱 現在のタブ:', status.currentTab);
         console.log('💾 容量整合性:', status.capacity);
-        
+
         // 設定の詳細デバッグ
         if (this.configManager) {
             this.configManager.debug();
         }
-        
+
         console.groupEnd();
 
         return status;
@@ -463,7 +472,7 @@ class SeatSimulatorApp {
 
         const navigation = window.performance.getEntriesByType('navigation')[0];
         const marks = window.performance.getEntriesByType('mark');
-        
+
         return {
             supported: true,
             loadTime: navigation ? navigation.loadEventEnd - navigation.loadEventStart : null,
@@ -510,7 +519,7 @@ window.addEventListener('error', (event) => {
     console.error('💥 未処理のエラー:', event.error);
 
     // 重要なエラーの場合はユーザーに通知
-    if (window.uiManager && event.error && 
+    if (window.uiManager && event.error &&
         !event.error.toString().includes('ResizeObserver') &&
         !event.error.toString().includes('Non-Error promise rejection')) {
         window.uiManager.showMessage(
@@ -571,7 +580,7 @@ window.getPerformanceInfo = () => {
 // アプリケーション開始
 startApp().catch(error => {
     console.error('💥 アプリケーションの開始に失敗しました:', error);
-    
+
     // フォールバック: 最小限のエラー表示
     document.body.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui;">

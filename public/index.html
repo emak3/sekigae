@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/attendance-settings.css">
     <link rel="stylesheet" href="css/toggle-components.css">
     <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/selection-states.css">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,11 +61,16 @@
                             <label for="studentName">生徒名</label>
                             <input type="text" id="studentName" placeholder="名前を入力してください">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group has-selection-state" id="studentNumberGroup">
                             <label for="studentNumber">出席番号</label>
                             <select id="studentNumber">
                                 <option value="">選択してください</option>
                             </select>
+                            <!-- 【新規追加】保持時間表示 -->
+                            <div class="number-hold-display" id="numberHoldTime">
+                                <i class="fas fa-hourglass-half"></i>
+                                <span>保持中: 3:00</span>
+                            </div>
                         </div>
                     </div>
 
@@ -207,13 +213,13 @@
                         </p>
                         <div class="slider-container">
                             <input type="range" id="attendanceRange" class="attendance-range" min="25" max="45"
-                                value="35" aria-label="出席番号の上限を設定">
+                                value="25" aria-label="出席番号の上限を設定">
                         </div>
                         <div class="slider-output">
                             <div>
-                                <span class="current-value" id="attendanceValue">35</span>番まで
+                                <span class="current-value" id="attendanceValue">25</span>番まで
                             </div>
-                            <div class="capacity-indicator" id="capacityIndicator">座席数+10</div>
+                            <div class="capacity-indicator" id="capacityIndicator">座席数内</div>
                         </div>
                     </div>
 
@@ -346,18 +352,19 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
-    
+
     <!-- Utility Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/config-manager.js"></script>
-    
+
     <!-- Core Scripts -->
     <script src="js/socket-manager.js"></script>
     <script src="js/attendance-manager.js"></script>
     <script src="js/seat-manager.js"></script>
     <script src="js/ui-manager.js"></script>
     <script src="js/footer-manager.js"></script>
-    
+    <script src="js/selection-state-manager.js"></script>
+
     <!-- Main Application -->
     <script src="js/main.js"></script>
 </body>
