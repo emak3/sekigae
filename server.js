@@ -12,8 +12,12 @@ const io = new Server(server, {
   }
 });
 
+// JSON解析ミドルウェア
+app.use(express.json());
+
 // 静的ファイルの提供
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // 教室データの保存用オブジェクト
 const classrooms = {};

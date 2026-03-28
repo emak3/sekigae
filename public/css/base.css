@@ -2,66 +2,86 @@
    基本スタイル (base.css)
    ========================================================================== */
 
-/* CSS Variables */
+/* CSS Variables - Apple Design System Inspired */
 :root {
-    /* Colors */
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #059669;
-    --warning-color: #d97706;
-    --danger-color: #dc2626;
-    
-    /* Background Colors */
+    /* Apple Colors - System Colors */
+    --primary-color: #007AFF;
+    --primary-hover: #0051D5;
+    --secondary-color: #8E8E93;
+    --success-color: #34C759;
+    --warning-color: #FF9500;
+    --danger-color: #FF3B30;
+
+    /* Apple Background Colors */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #e2e8f0;
-    
-    /* Text Colors */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    
+    --bg-secondary: #f5f5f7;
+    --bg-tertiary: #e5e5e7;
+    --bg-elevated: #ffffff;
+    --bg-card: rgba(255, 255, 255, 0.8);
+
+    /* Apple Text Colors */
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --text-tertiary: #a1a1a6;
+    --text-accent: #007AFF;
+
     /* Border Colors */
-    --border-light: #e2e8f0;
-    --border-medium: #cbd5e1;
-    --border-dark: #94a3b8;
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
-    
-    /* Border Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    
-    /* Fonts */
-    --font-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
-    --font-mono: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
-    
-    /* Font Sizes */
-    --text-xs: 0.75rem;
-    --text-sm: 0.875rem;
-    --text-base: 1rem;
-    --text-lg: 1.125rem;
-    --text-xl: 1.25rem;
-    --text-2xl: 1.5rem;
-    
-    /* Transitions */
-    --transition-fast: 150ms ease-in-out;
-    --transition-normal: 250ms ease-in-out;
-    --transition-slow: 350ms ease-in-out;
+    --border-light: rgba(0, 0, 0, 0.1);
+    --border-medium: rgba(0, 0, 0, 0.15);
+    --border-dark: rgba(0, 0, 0, 0.2);
+    --separator: rgba(60, 60, 67, 0.36);
+
+    /* Apple Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.08);
+
+    /* Apple Spacing - Based on 8pt grid */
+    --spacing-xs: 0.25rem;   /* 4pt */
+    --spacing-sm: 0.5rem;    /* 8pt */
+    --spacing-md: 1rem;      /* 16pt */
+    --spacing-lg: 1.5rem;    /* 24pt */
+    --spacing-xl: 2rem;      /* 32pt */
+    --spacing-2xl: 3rem;     /* 48pt */
+    --spacing-3xl: 4rem;     /* 64pt */
+
+    /* Apple Border Radius */
+    --radius-sm: 0.5rem;     /* 8pt */
+    --radius-md: 0.75rem;    /* 12pt */
+    --radius-lg: 1rem;       /* 16pt */
+    --radius-xl: 1.25rem;    /* 20pt */
+    --radius-2xl: 1.5rem;    /* 24pt */
+
+    /* Apple Typography */
+    --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    --font-mono: 'SF Mono', Monaco, Menlo, Consolas, 'Roboto Mono', monospace;
+
+    /* Apple Font Sizes - SF Pro scaling */
+    --text-xs: 0.75rem;      /* 12pt */
+    --text-sm: 0.875rem;     /* 14pt */
+    --text-base: 1rem;       /* 16pt */
+    --text-lg: 1.125rem;     /* 18pt */
+    --text-xl: 1.25rem;      /* 20pt */
+    --text-2xl: 1.5rem;      /* 24pt */
+    --text-3xl: 1.875rem;    /* 30pt */
+    --text-4xl: 2.25rem;     /* 36pt */
+
+    /* Apple Font Weights */
+    --font-light: 300;
+    --font-regular: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* Apple Transitions */
+    --transition-fast: 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-normal: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    /* Apple Blur */
+    --blur-light: blur(20px);
+    --blur-heavy: blur(40px);
 }
 
 /* Force light mode - ダークモードを無効化 */
@@ -99,28 +119,49 @@ html {
 
 body {
     height: 100%;
-    font-family: var(--font-sans);
+    font-family: var(--font-system);
     font-size: var(--text-base);
-    line-height: 1.6;
+    font-weight: var(--font-regular);
+    line-height: 1.47;
+    letter-spacing: -0.003em;
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
 }
 
-/* Typography */
+/* Typography - Apple Style */
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
-    font-weight: 600;
-    line-height: 1.25;
+    font-weight: var(--font-semibold);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
     color: var(--text-primary);
+    font-family: var(--font-system);
 }
 
-h1 { font-size: var(--text-2xl); }
-h2 { font-size: var(--text-xl); }
-h3 { font-size: var(--text-lg); }
-h4 { font-size: var(--text-base); }
+h1 {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    letter-spacing: -0.025em;
+}
+h2 {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.022em;
+}
+h3 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-semibold);
+    letter-spacing: -0.017em;
+}
+h4 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-medium);
+    letter-spacing: -0.011em;
+}
 
 p {
     margin: 0;
@@ -137,20 +178,24 @@ input, button, select, textarea {
 input[type="text"],
 input[type="number"] {
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 2px solid var(--border-light);
-    border-radius: var(--radius-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--separator);
+    border-radius: var(--radius-lg);
     font-size: var(--text-base);
+    font-family: var(--font-system);
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    transition: border-color var(--transition-fast);
+    transition: all var(--transition-fast);
+    appearance: none;
+    box-shadow: var(--shadow-sm);
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15), var(--shadow-md);
+    background-color: var(--bg-elevated);
 }
 
 input[type="number"] {
@@ -158,22 +203,27 @@ input[type="number"] {
     font-weight: 600;
 }
 
-/* Buttons Base */
+/* Buttons Base - Apple Style */
 button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-xl);
     border: none;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    font-size: var(--text-sm);
+    border-radius: var(--radius-xl);
+    font-family: var(--font-system);
+    font-weight: var(--font-medium);
+    font-size: var(--text-base);
+    line-height: 1.2;
     cursor: pointer;
     transition: all var(--transition-fast);
     white-space: nowrap;
     text-decoration: none;
     user-select: none;
+    appearance: none;
+    position: relative;
+    min-height: 44px;
 }
 
 button:disabled {

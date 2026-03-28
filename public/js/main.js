@@ -21,6 +21,9 @@ class SeatSimulatorApp {
         try {
             console.log(`🎯 席替えシミュレーター v${this.version} 初期化開始`);
 
+            // 認証チェックを最初に実行
+            await this.waitForAuthSystem();
+
             // 初期化順序は重要
             await this.initializeConfigManager();
             await this.initializeSocketManager();
@@ -43,6 +46,28 @@ class SeatSimulatorApp {
             console.error('❌ アプリケーション初期化エラー:', error);
             this.handleInitializationError(error);
         }
+    }
+
+    /**
+     * 認証システムの準備を待つ
+     */
+    async waitForAuthSystem() {
+        console.log('🔐 認証システムの準備を待機中...');
+
+        // authManagerが準備されるまで待つ
+        let attempts = 0;
+        const maxAttempts = 50; // 5秒間待機
+
+        while (!window.authManager && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        if (!window.authManager) {
+            throw new Error('認証システムの初期化に失敗しました');
+        }
+
+        console.log('✅ 認証システムが準備されました');
     }
 
     /**
@@ -72,6 +97,11 @@ class SeatSimulatorApp {
         this.socketManager = new SocketManager();
         await this.socketManager.initialize();
 
+        // 認証された部屋IDで確実に接続
+        setTimeout(() => {
+            this.socketManager.updateRoomId();
+        }, 500);
+
         console.log('✅ SocketManager初期化完了');
     }
 
@@ -86,6 +116,12 @@ class SeatSimulatorApp {
         // 設定から初期グリッド設定を読み込み
         const gridConfig = this.configManager.getGridConfig();
         this.seatManager.gridConfig = gridConfig;
+
+        // 初期グリッドを強制的に描画
+        console.log('デフォルトグリッドを描画中...', gridConfig);
+        setTimeout(() => {
+            this.seatManager.renderAllGrids();
+        }, 200);
 
         console.log('✅ SeatManager初期化完了');
     }

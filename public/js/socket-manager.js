@@ -14,11 +14,58 @@ class SocketManager {
     }
 
     /**
-     * URLパラメータから部屋IDを取得
+     * 部屋IDを取得（LocalStorage優先、フォールバックでURL）
      */
     getRoomIdFromURL() {
+        // 認証情報から部屋IDを取得
+        try {
+            const savedRoom = localStorage.getItem('currentRoom');
+            if (savedRoom) {
+                const roomData = JSON.parse(savedRoom);
+                if (roomData && roomData.id) {
+                    console.log('LocalStorageから部屋IDを取得:', roomData.id);
+                    return roomData.id;
+                }
+            }
+        } catch (error) {
+            console.warn('部屋データの解析に失敗:', error);
+        }
+
+        // フォールバック: URLパラメータから取得
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('room') || 'default';
+        const roomFromUrl = urlParams.get('room') || 'default';
+        console.log('URLパラメータから部屋IDを取得:', roomFromUrl);
+        return roomFromUrl;
+    }
+
+    /**
+     * 部屋IDを更新
+     */
+    updateRoomId() {
+        const newRoomId = this.getRoomIdFromURL();
+        if (newRoomId !== this.roomId) {
+            console.log(`部屋IDを更新: ${this.roomId} -> ${newRoomId}`);
+            this.roomId = newRoomId;
+
+            // URLも更新
+            this.updateRoomIdInURL();
+
+            // 接続済みの場合は新しい部屋に参加
+            if (this.isConnected && this.socket) {
+                this.socket.emit('joinRoom', this.roomId);
+                this.socket.emit('requestData');
+            }
+        }
+    }
+
+    /**
+     * URLに部屋IDを反映
+     */
+    updateRoomIdInURL() {
+        if (window.URLUtils && this.roomId) {
+            window.URLUtils.setRoomId(this.roomId);
+            console.log(`URLに部屋IDを設定: ${this.roomId}`);
+        }
     }
 
     /**
@@ -26,8 +73,11 @@ class SocketManager {
      */
     async initialize() {
         try {
+            // 最新の部屋IDを取得
+            this.updateRoomId();
+
             console.log(`Socket.io初期化開始 - 部屋ID: ${this.roomId}`);
-            
+
             if (typeof io === 'undefined') {
                 throw new Error('Socket.IOライブラリが読み込まれていません');
             }
@@ -41,7 +91,7 @@ class SocketManager {
             });
 
             this.setupEventHandlers();
-            
+
             // 接続タイムアウト（5秒後にローカルモードに切り替え）
             setTimeout(() => {
                 if (!this.isConnected) {
@@ -71,6 +121,7 @@ class SocketManager {
             
             // 部屋に参加
             this.socket.emit('joinRoom', this.roomId);
+            this.updateRoomIdInURL();
             this.emit('connected', { roomId: this.roomId });
         });
 
@@ -96,6 +147,7 @@ class SocketManager {
             
             // 再接続時は部屋に再参加してデータを要求
             this.socket.emit('joinRoom', this.roomId);
+            this.updateRoomIdInURL();
             this.socket.emit('requestData');
             this.emit('reconnected');
         });

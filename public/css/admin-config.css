@@ -1,0 +1,212 @@
+/* 管理者設定のスタイル */
+.admin-settings {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 1rem;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.admin-settings h3 {
+    color: #1e293b;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-settings h3 i {
+    color: #3b82f6;
+}
+
+.admin-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    padding: 1rem;
+    background: #e0f2fe;
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+}
+
+.admin-add-section {
+    margin-bottom: 2rem;
+}
+
+.admin-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.admin-input-group input {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-input-group .btn-primary {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+}
+
+.admin-list-section h4 {
+    color: #374151;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.admin-numbers-list {
+    min-height: 3rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    background: white;
+    margin-bottom: 1rem;
+}
+
+.admin-number-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    margin-bottom: 0.25rem;
+    background: #f1f5f9;
+    border-radius: 0.375rem;
+    border: 1px solid #e2e8f0;
+}
+
+.admin-number-item:last-child {
+    margin-bottom: 0;
+}
+
+.admin-number {
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.btn-remove {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+}
+
+.btn-remove:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+.no-admins {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 1rem;
+}
+
+.admin-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.admin-current-status {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #d1d5db;
+}
+
+.current-user-info h4 {
+    color: #374151;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.user-number {
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.user-role {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    width: fit-content;
+}
+
+.user-role.admin {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.user-role.participant {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.role-note {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.status-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+/* 通知スタイル */
+.admin-notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .admin-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-input-group .btn-primary {
+        margin-top: 0.5rem;
+    }
+
+    .user-info {
+        text-align: center;
+    }
+
+    .user-role {
+        align-self: center;
+    }
+}

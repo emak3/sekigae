@@ -245,8 +245,13 @@ class SeatManager {
 
             const nameElement = document.createElement('div');
             nameElement.className = 'student-name';
-            // 出席番号も表示
-            const displayName = assignedStudent.number ? `${assignedStudent.number}番 ${assignedStudent.name}` : assignedStudent.name;
+            // 出席番号を下2桁で表示
+            let displayName = assignedStudent.name;
+            if (assignedStudent.number) {
+                const numberString = String(assignedStudent.number).padStart(2, '0');
+                const lastTwoDigits = numberString.slice(-2);
+                displayName = `${lastTwoDigits} ${assignedStudent.name}`;
+            }
             nameElement.textContent = displayName;
 
             // 未登録の場合は名前の色を変更
@@ -422,8 +427,6 @@ class SeatManager {
             return;
         }
 
-        console.log('席割り当て開始 - 全生徒:', this.students);
-
         // 割り当て前にリセット
         const totalSeats = this.gridConfig.rows * this.gridConfig.cols;
         this.assignedSeats = Array(totalSeats).fill(null);
@@ -471,7 +474,7 @@ class SeatManager {
 
         if (window.uiManager) {
             window.uiManager.showMessage('席の割り当てが完了しました！', 'success');
-            window.uiManager.highlightTab('seating-assignment');
+            window.uiManager.switchTab('seating-assignment');
         }
     }
 
@@ -646,7 +649,7 @@ class SeatManager {
 
         if (window.uiManager) {
             window.uiManager.showMessage('ランダムに席を割り当てました！', 'success');
-            window.uiManager.highlightTab('seating-assignment');
+            window.uiManager.switchTab('seating-assignment');
         }
     }
 
@@ -669,7 +672,15 @@ class SeatManager {
     }
 
     /**
-     * 未使用出席番号で空席をランダムに埋める（欠番を除外）
+     * 有効な座席の総数を取得
+     */
+    getTotalValidSeats() {
+        const totalSeats = this.gridConfig.rows * this.gridConfig.cols;
+        return totalSeats - this.gridConfig.disabledSeats.length;
+    }
+
+    /**
+     * 未使用出席番号で空席をランダムに埋める（欠番を除外、下2桁重複回避）
      */
     fillEmptySeatsWithUnusedNumbers() {
         // AttendanceManagerから有効な出席番号を取得（欠番を除外）
@@ -710,27 +721,72 @@ class SeatManager {
             return;
         }
 
-        // 未使用番号と空席をシャッフル
-        const shuffledNumbers = this.shuffleArray([...unusedNumbers]);
+        // 現在割り当て済みの番号の下2桁を取得
+        const usedLastTwoDigits = new Set();
+        this.assignedSeats.forEach(seat => {
+            if (seat && seat.number) {
+                const lastTwo = String(seat.number).padStart(2, '0').slice(-2);
+                usedLastTwoDigits.add(lastTwo);
+            }
+        });
+
+        console.log('既に使用されている下2桁:', Array.from(usedLastTwoDigits));
+
+        // 下2桁が重複しない番号を優先的に配置
         const shuffledEmptySeats = this.shuffleArray([...emptySeats]);
+        let assignedCount = 0;
 
-        // 空席に未使用番号をランダムに配置
-        const assignCount = Math.min(shuffledNumbers.length, shuffledEmptySeats.length);
+        // まず下2桁が重複しない番号を配置
+        for (const seatIndex of shuffledEmptySeats) {
+            if (assignedCount >= unusedNumbers.length) break;
 
-        for (let i = 0; i < assignCount; i++) {
-            const seatIndex = shuffledEmptySeats[i];
-            const number = shuffledNumbers[i];
+            // 重複しない番号を探す
+            const availableNumber = unusedNumbers.find(num => {
+                const lastTwo = String(num).padStart(2, '0').slice(-2);
+                return !usedLastTwoDigits.has(lastTwo);
+            });
 
-            console.log(`未登録の${number}番を席${seatIndex}に配置`);
+            if (availableNumber) {
+                const lastTwo = String(availableNumber).padStart(2, '0').slice(-2);
+                usedLastTwoDigits.add(lastTwo);
 
-            this.assignedSeats[seatIndex] = {
-                name: `${number}番`,
-                number: number,
-                preference: -2 // 未登録を示す特別な値
-            };
+                console.log(`未登録の${availableNumber}番(下2桁:${lastTwo})を席${seatIndex}に配置`);
+
+                this.assignedSeats[seatIndex] = {
+                    name: `(未登録)`,
+                    number: availableNumber,
+                    preference: -2 // 未登録フラグ
+                };
+
+                // 使用済み番号から削除
+                const index = unusedNumbers.indexOf(availableNumber);
+                if (index > -1) {
+                    unusedNumbers.splice(index, 1);
+                }
+                assignedCount++;
+            }
         }
 
-        console.log(`未使用番号による空席埋め完了: ${assignCount}席を追加配置`);
+        // 残りの番号があれば重複を許可して配置
+        if (unusedNumbers.length > 0 && assignedCount < shuffledEmptySeats.length) {
+            const remainingSeats = shuffledEmptySeats.slice(assignedCount);
+            const shuffledRemainingNumbers = this.shuffleArray([...unusedNumbers]);
+
+            for (let i = 0; i < Math.min(remainingSeats.length, shuffledRemainingNumbers.length); i++) {
+                const seatIndex = remainingSeats[i];
+                const number = shuffledRemainingNumbers[i];
+
+                console.log(`未登録の${number}番を席${seatIndex}に配置（重複許可）`);
+
+                this.assignedSeats[seatIndex] = {
+                    name: `(未登録)`,
+                    number: number,
+                    preference: -2 // 未登録を示す特別な値
+                };
+            }
+        }
+
+        console.log(`未使用番号による空席埋め完了: 合計${assignedCount + (unusedNumbers.length > 0 ? Math.min(shuffledEmptySeats.length - assignedCount, unusedNumbers.length) : 0)}席を追加配置`);
     }
 
     /**

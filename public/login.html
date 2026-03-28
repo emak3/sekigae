@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>席替えシミュレーター - ログイン</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/login.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1><i class="fas fa-school"></i> 席替えシミュレーター</h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Googleログイン画面 -->
+            <div class="login-section" id="loginSection">
+                <div class="login-container login-container--wide">
+                    <div class="login-header">
+                        <i class="fab fa-google" aria-hidden="true"></i>
+                        <h2>Googleアカウントでログイン</h2>
+                        <p class="login-lead">学校の Google アカウント（<strong>@s.salesio-sp.ac.jp</strong>）でサインインしてください。</p>
+                    </div>
+
+                    <!-- Googleログインボタン -->
+                    <div id="g_id_signin" data-client_id="116884154238-7qslk5tb0v4fcoc75lc2tf20hm1tif6p.apps.googleusercontent.com"
+                         data-callback="handleGoogleSignIn"
+                         data-auto_prompt="false"></div>
+
+                    <div class="login-error" id="loginError" style="display: none;" role="alert">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        <span id="loginErrorText"></span>
+                    </div>
+
+                    <div class="post-login-summary" id="postLoginSummary" style="display: none;" aria-live="polite">
+                        <p class="post-login-step-label">ステップ 1 · 完了</p>
+                        <h3 class="post-login-title">ログインしました</h3>
+                        <div class="post-login-user-card">
+                            <img id="postLoginAvatar" class="post-login-avatar" src="" alt="">
+                            <div class="post-login-user-text">
+                                <div id="postLoginName" class="post-login-name"></div>
+                                <div id="postLoginMeta" class="post-login-meta"></div>
+                            </div>
+                        </div>
+                        <p class="post-login-next-hint" id="postLoginNextHint">ステップ 2 · 部屋を作成するか、共有された部屋に参加してください。</p>
+                    </div>
+
+                    <!-- 部屋作成・参加セクション -->
+                    <div class="room-section" id="roomSection" style="display: none;">
+                        <div id="pendingInvitePanel" class="pending-invite-panel" style="display: none;" hidden></div>
+
+                        <div id="roomChoices" class="room-options">
+                            <h3 class="room-section-title"><i class="fas fa-door-open" aria-hidden="true"></i> ステップ 2 · 部屋</h3>
+                            <p class="room-section-lead">新しく教室用の部屋を作るか、共有リンクの部屋IDで参加します。</p>
+
+                            <div class="room-buttons">
+                                <button id="createRoomBtn" class="btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    新しい部屋を作成
+                                </button>
+                                <button id="joinRoomBtn" class="btn-secondary">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    部屋に参加
+                                </button>
+                            </div>
+
+                            <!-- 部屋作成フォーム -->
+                            <div id="createRoomForm" class="room-form" style="display: none;">
+                                <h4>新しい部屋を作成</h4>
+                                <div class="form-group">
+                                    <label for="roomName">部屋名</label>
+                                    <input type="text" id="roomName" placeholder="例: 3年A組 席替え">
+                                </div>
+                                <div class="form-group">
+                                    <label for="roomDescription">説明（任意）</label>
+                                    <textarea id="roomDescription" placeholder="部屋の説明を入力"></textarea>
+                                </div>
+
+                                <!-- 管理者権限設定 -->
+                                <div class="form-group">
+                                    <label for="adminNumbers">追加の管理者（学籍番号・任意）</label>
+                                    <input type="text" id="adminNumbers" placeholder="例: 12345, 67890（カンマ区切り）" autocomplete="off">
+                                    <small class="form-hint"><strong>あなた（作成者）は常に管理者</strong>です。ほかに設定や席割りを操作させたい人がいる場合だけ入力してください。</small>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button id="confirmCreateRoom" class="btn-primary">
+                                        <i class="fas fa-check"></i>
+                                        作成
+                                    </button>
+                                    <button id="cancelCreateRoom" class="btn-outline">
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 部屋参加フォーム -->
+                            <div id="joinRoomForm" class="room-form" style="display: none;">
+                                <h4>部屋に参加</h4>
+                                <div class="form-group">
+                                    <label for="roomId">部屋ID</label>
+                                    <input type="text" id="roomId" placeholder="部屋IDを入力">
+                                </div>
+                                <div class="form-buttons">
+                                    <button id="confirmJoinRoom" class="btn-primary">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        参加
+                                    </button>
+                                    <button id="cancelJoinRoom" class="btn-outline">
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- デバッグ（URL に ?debug=1 を付けたときのみ表示） -->
+                    <div id="debugInfo" style="margin-top: 20px; font-size: 0.8rem; color: #888; display: none;">
+                        <details>
+                            <summary>デバッグ情報</summary>
+                            <div id="debugContent"></div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-app-info">
+                    <i class="fas fa-school"></i>
+                    <span>席替えシミュレーター</span>
+                </div>
+                <div class="footer-version">v2.1.0</div>
+                <div class="footer-copyright">
+                    © 2025 emak3. All rights reserved.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+
+    <!-- Login-specific Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/config-manager.js"></script>
+    <script src="js/login-auth-manager.js"></script>
+    <script src="js/room-manager.js"></script>
+</body>
+
+</html>

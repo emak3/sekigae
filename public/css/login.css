@@ -1,0 +1,540 @@
+/* Google Login Styles */
+.login-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.login-container {
+    background: var(--bg-primary, #fff);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-md, 0 4px 20px rgba(0, 0, 0, 0.08));
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08));
+}
+
+.login-container--wide {
+    max-width: 440px;
+}
+
+.login-header {
+    margin-bottom: 2rem;
+}
+
+.login-header i {
+    font-size: 3rem;
+    color: #4285f4;
+    margin-bottom: 1rem;
+}
+
+.login-header h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.login-header p,
+.login-lead {
+    color: var(--text-secondary, #666);
+    font-size: var(--text-sm, 0.9375rem);
+    line-height: 1.5;
+    max-width: 26rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-lead strong {
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+/* ログイン直後のサマリー（明確な階層・余白） */
+.post-login-summary {
+    margin-top: 1.75rem;
+    padding: 1.25rem 1rem;
+    text-align: left;
+    background: var(--bg-secondary, #f5f5f7);
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08));
+}
+
+.post-login-step-label {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary, #86868b);
+}
+
+.post-login-title {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary, #1d1d1f);
+}
+
+.post-login-user-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem 0;
+}
+
+.post-login-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+.post-login-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary, #1d1d1f);
+}
+
+.post-login-meta {
+    font-size: 0.8125rem;
+    color: var(--text-secondary, #86868b);
+    margin-top: 0.125rem;
+    word-break: break-all;
+}
+
+.post-login-next-hint {
+    margin: 1rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light, rgba(0, 0, 0, 0.08));
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--text-secondary, #515154);
+}
+
+/* 共有URLから開いたときの参加確認 */
+.pending-invite-panel {
+    margin-bottom: 1.5rem;
+}
+
+.pending-invite-card {
+    text-align: left;
+    padding: 1.25rem 1.25rem 1.5rem;
+    background: var(--bg-primary, #fff);
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid rgba(0, 122, 255, 0.25);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.pending-invite-label {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-tertiary, #86868b);
+}
+
+.pending-invite-id {
+    margin: 0.5rem 0 0.75rem;
+    font-size: 1.125rem;
+}
+
+.pending-invite-id code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 1rem;
+    padding: 0.35rem 0.6rem;
+    background: var(--bg-secondary, #f5f5f7);
+    border-radius: 6px;
+    color: var(--text-primary, #1d1d1f);
+}
+
+.pending-invite-note {
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary, #515154);
+}
+
+.pending-invite-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pending-invite-actions .btn-primary,
+.pending-invite-actions .btn-outline {
+    min-height: 44px;
+    justify-content: center;
+}
+
+.room-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary, #1d1d1f);
+    margin-bottom: 0.5rem;
+}
+
+.room-section-lead {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary, #515154);
+    margin: 0 0 1.25rem;
+    text-align: left;
+}
+
+/* Google Sign-In button container */
+#g_id_signin {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+/* タブの無効化スタイル */
+.nav-tab.disabled {
+    position: relative;
+    cursor: not-allowed !important;
+}
+
+.nav-tab.disabled::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.nav-tab.disabled:hover {
+    background: none !important;
+    transform: none !important;
+}
+
+.login-error {
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 6px;
+    padding: 12px;
+    color: #c33;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.login-error i {
+    color: #c33;
+}
+
+/* User Info Styles */
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 1rem;
+}
+
+.user-number {
+    font-size: 0.85rem;
+    color: #666;
+    font-family: monospace;
+}
+
+.logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.logout-btn i {
+    font-size: 0.9rem;
+}
+
+/* Header User Info Styles */
+.header-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 8px 12px;
+    margin-left: auto;
+    margin-right: 16px;
+}
+
+.header-user-photo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-user-info .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.header-user-info .user-name {
+    font-weight: 600;
+    color: white;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.header-user-info .user-status {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.header-logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.header-logout-btn i {
+    font-size: 0.9rem;
+}
+
+/* Room Options Styles */
+.room-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.room-section .room-options {
+    text-align: left;
+}
+
+.room-options h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    font-size: 1.2rem;
+}
+
+.room-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.room-buttons button {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.room-form {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.room-form h4 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4285f4;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #666;
+    line-height: 1.3;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.form-buttons button {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .room-buttons {
+        flex-direction: column;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-section {
+        padding: 1rem;
+        min-height: 50vh;
+    }
+
+    .login-container {
+        padding: 2rem;
+    }
+
+    .login-header i {
+        font-size: 2.5rem;
+    }
+
+    .login-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .user-info {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .header-user-info {
+        margin-right: 8px;
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .header-user-info .user-name {
+        max-width: 100px;
+        font-size: 0.8rem;
+    }
+
+    .header-user-info .user-status {
+        max-width: 100px;
+        font-size: 0.7rem;
+    }
+
+    .header-user-photo {
+        width: 28px;
+        height: 28px;
+    }
+
+    .header-logout-btn {
+        width: 28px;
+        height: 28px;
+    }
+}

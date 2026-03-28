@@ -2,29 +2,47 @@
    レスポンシブデザイン (responsive.css)
    ========================================================================== */
 
-/* Large Screens (Desktop) */
+/* Large Screens (Desktop) - Apple Style */
 @media (min-width: 1024px) {
     .tab-content {
-        padding: var(--spacing-2xl);
-        max-width: 1400px;
+        padding: var(--spacing-3xl);
+        max-width: 1200px;
         margin: 0 auto;
     }
 
     .classroom-container {
-        padding: var(--spacing-2xl);
+        padding: var(--spacing-3xl);
+        max-width: 900px;
+        margin: 0 auto var(--spacing-2xl) auto;
     }
 
     .seating-area {
-        max-width: 800px;
+        max-width: 700px;
         margin: 0 auto;
+        gap: var(--spacing-md);
     }
 
     .grid-settings {
-        max-width: 400px;
+        max-width: 500px;
+        margin: 0 auto;
     }
 
     .action-buttons {
-        max-width: 500px;
+        max-width: 600px;
+        margin: var(--spacing-2xl) auto 0 auto;
+        gap: var(--spacing-lg);
+    }
+
+    .action-buttons button {
+        min-width: 160px;
+        padding: var(--spacing-lg) var(--spacing-2xl);
+    }
+
+    /* Apple-style content centering */
+    .student-list-section,
+    .settings-section,
+    .room-settings {
+        max-width: 800px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -69,10 +87,10 @@
     }
 }
 
-/* Small Screens (Mobile) */
+/* Small Screens (Mobile) - Apple iOS Style */
 @media (max-width: 767px) {
-    /* Header Adjustments */
-    .app-header {
+    /* Header Adjustments - iOS Navigation Bar Style */
+    .header-content {
         padding: var(--spacing-md);
         flex-direction: column;
         gap: var(--spacing-sm);
@@ -81,28 +99,54 @@
 
     .app-header h1 {
         font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
         justify-content: center;
     }
 
-    .connection-status {
+    .header-actions {
+        gap: var(--spacing-sm);
+        justify-content: center;
+        order: 2;
+    }
+
+    .compact-navigation {
+        order: 1;
         align-self: center;
-        font-size: var(--text-xs);
-    }
-
-    /* Navigation Tabs */
-    .nav-tab {
-        flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--spacing-xs);
-        padding: var(--spacing-sm) var(--spacing-md);
-        min-width: 100px;
+        padding: var(--spacing-xs);
     }
 
-    .nav-tab i {
-        font-size: var(--text-sm);
-    }
-
-    .nav-tab span {
+    .compact-tab {
+        padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--text-xs);
+    }
+
+    .compact-tab i {
+        font-size: var(--text-xs);
+    }
+
+    .compact-tab span {
+        display: none;
+    }
+
+    .header-user-info {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .user-name {
+        font-size: var(--text-xs);
+    }
+
+    .connection-status {
+        font-size: var(--text-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
     }
 
     /* Content Area */
@@ -289,17 +333,27 @@
         gap: var(--spacing-sm);
     }
 
-    /* Action Buttons */
+    /* Action Buttons - iOS Style */
     .action-buttons {
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md);
+        padding: 0 var(--spacing-md);
     }
 
     .action-buttons button {
         min-width: auto;
         width: 100%;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: var(--text-sm);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        font-size: var(--text-base);
+        font-weight: var(--font-medium);
+        border-radius: var(--radius-xl);
+        min-height: 50px;
+        box-shadow: var(--shadow-card);
+    }
+
+    .action-buttons button:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
     }
 
     /* Form Elements */

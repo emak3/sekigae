@@ -8,10 +8,12 @@ class UIManager {
         this.seatManager = seatManager;
         this.students = [];
         this.currentTab = 'seat-selection';
+        this.missingNumbers = []; // 欠番の配列
 
         this.initializeElements();
         this.setupEventHandlers();
         this.setupSocketHandlers();
+
     }
 
     /**
@@ -19,14 +21,16 @@ class UIManager {
      */
     initializeElements() {
         // Tab elements
-        this.tabButtons = document.querySelectorAll('.nav-tab');
+        this.tabButtons = document.querySelectorAll('.compact-tab');
         this.tabContents = document.querySelectorAll('.tab-content');
 
-        // Form elements
-        this.studentNameInput = document.getElementById('studentName');
-        this.studentNumberSelect = document.getElementById('studentNumber');
+        // Form elements (認証システムから自動取得)
+        this.studentNameInput = null; // Googleアカウントから自動取得
+        this.studentNumberSelect = null; // Googleアカウントから自動取得
         this.gridRowsInput = document.getElementById('gridRows');
         this.gridColsInput = document.getElementById('gridCols');
+        this.maxStudentNumberInput = document.getElementById('maxStudentNumber');
+        this.missingNumbersGrid = document.getElementById('missingNumbersGrid');
 
         // Button elements
         this.submitButton = document.getElementById('submitSelection');
@@ -38,7 +42,9 @@ class UIManager {
         this.updateGridButton = document.getElementById('updateGrid');
         this.saveSettingsButton = document.getElementById('saveSettings');
         this.resetSettingsButton = document.getElementById('resetSettings');
-        this.changeRoomButton = document.getElementById('changeRoom');
+        this.deleteRoomButton = document.getElementById('deleteRoom');
+        this.copyRoomLinkButton = document.getElementById('copyRoomLink');
+        this.roomIdDisplay = document.getElementById('roomIdDisplay');
 
         // Container elements
         this.messageArea = document.getElementById('messageArea');
@@ -77,7 +83,7 @@ class UIManager {
         }
 
         if (this.assignRandomButton) {
-            this.assignRandomButton.addEventListener('click', () => this.seatManager.assignRandomSeats());
+            this.assignRandomButton.addEventListener('click', () => this.handleRandomAssignment());
         }
 
         if (this.clearAssignmentsButton) {
@@ -98,26 +104,37 @@ class UIManager {
             this.saveSettingsButton.addEventListener('click', () => this.handleSaveSettings());
         }
 
+        // 出席番号設定の変更監視
+        if (this.maxStudentNumberInput) {
+            this.maxStudentNumberInput.addEventListener('input', () => {
+                this.updateMissingNumbersGrid();
+                this.updateAttendanceSummary();
+            });
+        }
+
         if (this.resetSettingsButton) {
             this.resetSettingsButton.addEventListener('click', () => this.seatManager.resetSettings());
         }
 
         // Room management
-        if (this.changeRoomButton) {
-            this.changeRoomButton.addEventListener('click', () => this.handleChangeRoom());
+        if (this.deleteRoomButton) {
+            this.deleteRoomButton.addEventListener('click', () => this.handleDeleteRoom());
+        }
+
+        // 部屋ID共有機能
+        if (this.copyRoomLinkButton) {
+            this.copyRoomLinkButton.addEventListener('click', () => this.handleCopyRoomLink());
+        }
+
+        if (this.roomIdDisplay) {
+            this.roomIdDisplay.addEventListener('click', () => this.handleCopyRoomLink());
         }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
 
         // Form enter key handling
-        if (this.studentNameInput) {
-            this.studentNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.handleSubmitSelection();
-                }
-            });
-        }
+        // studentNameInputは不要（Googleアカウントから自動取得）
     }
 
     /**
@@ -133,12 +150,20 @@ class UIManager {
             if (data.gridConfig) {
                 this.updateStudentNumberOptions();
             }
+            // データ更新時に権限チェックを再適用
+            setTimeout(() => {
+                this.applyPermissionBasedUIRestrictions();
+            }, 100);
         });
 
         this.socketManager.on('studentsUpdated', (students) => {
             this.students = students;
             this.updateStudentList();
             this.updateStudentNumberOptions();
+            // データ更新時に権限チェックを再適用
+            setTimeout(() => {
+                this.applyPermissionBasedUIRestrictions();
+            }, 100);
         });
 
         this.socketManager.on('gridConfigUpdated', (config) => {
@@ -252,7 +277,8 @@ class UIManager {
      * 出席番号の選択肢を更新（強制テキスト色修正版）
      */
     updateStudentNumberOptions() {
-        if (!this.studentNumberSelect) return;
+        // studentNumberSelectは不要（Googleアカウントから自動取得）
+        return;
 
         // 現在の選択を記録
         const currentValue = this.studentNumberSelect.value;
@@ -362,9 +388,7 @@ class UIManager {
         switch (tabId) {
             case 'seat-selection':
                 this.seatManager.renderSelectionGrid();
-                if (this.studentNameInput) {
-                    this.studentNameInput.focus();
-                }
+                // フォーカスは不要（Googleアカウントから自動取得）
                 break;
 
             case 'student-management':
@@ -385,24 +409,25 @@ class UIManager {
      * 希望席提出の処理
      */
     handleSubmitSelection() {
-        const name = this.studentNameInput?.value?.trim();
-        const number = parseInt(this.studentNumberSelect?.value);
+        // Googleアカウントから名前と番号を自動取得
+        const currentUser = this.getCurrentUser();
+        if (!currentUser) {
+            this.showMessage('ログインが必要です。', 'error');
+            return;
+        }
+
+        const name = currentUser.name;
+        const number = parseInt(currentUser.studentNumber);
         const selectedSeats = this.seatManager.getSelectedSeats();
 
         // バリデーション
         if (!name) {
-            this.showMessage('名前を入力してください。', 'error');
-            if (this.studentNameInput) {
-                this.studentNameInput.focus();
-            }
+            this.showMessage('Googleアカウントから名前を取得できませんでした。', 'error');
             return;
         }
 
         if (!number) {
-            this.showMessage('出席番号を選択してください。', 'error');
-            if (this.studentNumberSelect) {
-                this.studentNumberSelect.focus();
-            }
+            this.showMessage('Googleアカウントから学籍番号を取得できませんでした。', 'error');
             return;
         }
 
@@ -449,6 +474,9 @@ class UIManager {
                 this.students[existingByNumber].preferences = [...selectedSeats];
                 this.students[existingByNumber].assigned = false;
                 delete this.students[existingByNumber].assignedSeat;
+
+                // 生徒番号が欠番リストにある場合は欠番から除外
+                this.removeFromMissingNumbers(number);
             } else {
                 return;
             }
@@ -461,6 +489,9 @@ class UIManager {
                 assigned: false
             });
         }
+
+        // 生徒番号が欠番リストにある場合は欠番から除外
+        this.removeFromMissingNumbers(number);
 
         // 選択状態をクリア
         if (window.selectionStateManager) {
@@ -476,13 +507,7 @@ class UIManager {
         this.updateStudentNumberOptions();
         this.showMessage(`${name}さん（${number}番）の希望が登録されました！`, 'success');
 
-        // フォームリセット
-        if (this.studentNameInput) {
-            this.studentNameInput.value = '';
-        }
-        if (this.studentNumberSelect) {
-            this.studentNumberSelect.value = '';
-        }
+        // フォームリセット（Googleアカウント情報は保持）
         this.seatManager.resetSelection();
     }
 
@@ -555,14 +580,43 @@ class UIManager {
     }
 
     /**
-     * 部屋変更の処理
+     * 部屋削除の処理
      */
-    handleChangeRoom() {
-        const currentRoomId = this.socketManager.roomId;
-        const newRoomId = prompt('新しい部屋IDを入力してください:', currentRoomId);
+    handleDeleteRoom() {
+        const currentUser = this.getCurrentUser();
+        const isAdmin = this.isCurrentUserAdmin();
 
-        if (newRoomId && newRoomId.trim() !== '' && newRoomId !== currentRoomId) {
-            this.socketManager.changeRoom(newRoomId);
+        // 管理者権限チェック
+        if (!isAdmin) {
+            this.showMessage('部屋を終わらせる権限がありません（管理者のみ）', 'error');
+            return;
+        }
+
+        const roomInfo = this.getCurrentRoom();
+        const roomName = roomInfo ? roomInfo.name : '現在の部屋';
+
+        if (confirm(`${roomName}を終わらせますか？\n\nこの操作により：\n・すべての生徒データがクリアされます\n・部屋への接続が終了します\n・他の参加者も強制的に退出されます`)) {
+            try {
+                // ローカルデータをクリア
+                localStorage.removeItem('currentRoom');
+                localStorage.removeItem('userRole');
+
+                // サーバー側のデータもクリア
+                if (this.socketManager && this.socketManager.isConnected) {
+                    this.socketManager.socket.emit('clearAllData');
+                }
+
+                this.showMessage('部屋を終わらせました', 'success');
+
+                // ログイン画面にリダイレクト
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('部屋削除エラー:', error);
+                this.showMessage('部屋の削除中にエラーが発生しました', 'error');
+            }
         }
     }
 
@@ -612,7 +666,10 @@ class UIManager {
 
         const nameElement = document.createElement('div');
         nameElement.className = 'name';
-        nameElement.textContent = student.number ? `${student.number}番 ${student.name}` : student.name;
+
+        // 番号を下2桁で表示
+        const displayNumber = student.number ? String(student.number).slice(-2).padStart(2, '0') : null;
+        nameElement.textContent = displayNumber ? `${displayNumber}番 ${student.name}` : student.name;
 
         // 希望席の表示を削除
         info.appendChild(nameElement);
@@ -624,7 +681,20 @@ class UIManager {
         removeButton.className = 'btn-remove';
         removeButton.innerHTML = '<i class="fas fa-times"></i>';
         removeButton.title = '削除';
-        removeButton.addEventListener('click', () => this.removeStudent(student.name));
+
+        // 権限チェック: 管理者または本人のみ削除可能
+        const currentUser = this.getCurrentUser();
+        const isAdmin = this.isCurrentUserAdmin();
+        const isOwnData = currentUser && student.number === parseInt(currentUser.studentNumber);
+
+        if (isAdmin || isOwnData) {
+            removeButton.addEventListener('click', () => this.removeStudent(student.name));
+        } else {
+            removeButton.disabled = true;
+            removeButton.style.opacity = '0.3';
+            removeButton.style.cursor = 'not-allowed';
+            removeButton.title = '権限がありません（管理者または本人のみ削除可能）';
+        }
 
         actions.appendChild(removeButton);
 
@@ -638,6 +708,17 @@ class UIManager {
      * 生徒の削除
      */
     removeStudent(name) {
+        // 権限チェック
+        const currentUser = this.getCurrentUser();
+        const isAdmin = this.isCurrentUserAdmin();
+        const targetStudent = this.students.find(s => s.name === name);
+        const isOwnData = currentUser && targetStudent && targetStudent.number === parseInt(currentUser.studentNumber);
+
+        if (!isAdmin && !isOwnData) {
+            this.showMessage('削除権限がありません（管理者または本人のみ削除可能）', 'error');
+            return;
+        }
+
         if (confirm(`${name}さんのデータを削除しますか？`)) {
             this.students = this.students.filter(student => student.name !== name);
 
@@ -755,7 +836,6 @@ class UIManager {
      */
     setFormEnabled(enabled) {
         const formElements = [
-            this.studentNameInput,
             this.submitButton,
             this.resetButton,
             this.assignButton,
@@ -816,9 +896,14 @@ class UIManager {
             this.forceSelectTextColor();
         }, 100);
 
-        if (this.studentNameInput) {
-            this.studentNameInput.focus();
-        }
+        // フォーカスは不要（Googleアカウントから自動取得）
+
+        // 管理者権限による表示制御
+        this.applyPermissionBasedUIRestrictions();
+
+        // 出席番号設定の初期化
+        this.updateMissingNumbersGrid();
+        this.updateAttendanceSummary();
 
         // 【追加】定期的にテキスト色をチェック
         setInterval(() => {
@@ -827,6 +912,766 @@ class UIManager {
 
         console.log('UIManager初期化完了');
     }
+
+    /**
+     * 現在のユーザー情報を取得
+     */
+    getCurrentUser() {
+        // authGuardから取得を試みる
+        if (window.authGuard && window.authGuard.getCurrentUser) {
+            return window.authGuard.getCurrentUser();
+        }
+
+        // authManagerから取得を試みる
+        if (window.authManager && window.authManager.getCurrentUser) {
+            return window.authManager.getCurrentUser();
+        }
+
+        // localStorageから直接取得
+        try {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                return JSON.parse(savedUser);
+            }
+        } catch (error) {
+            console.error('ユーザー情報の取得エラー:', error);
+        }
+
+        return null;
+    }
+
+    /**
+     * 現在のユーザーが管理者かチェック
+     */
+    isCurrentUserAdmin() {
+        // authGuardから権限をチェック
+        if (window.authGuard && window.authGuard.isAdmin) {
+            return window.authGuard.isAdmin();
+        }
+
+        // admin-configから権限をチェック
+        if (window.adminConfig && window.adminConfig.isCurrentUserAdmin) {
+            return window.adminConfig.isCurrentUserAdmin();
+        }
+
+        // userRoleをチェック
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'admin') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 現在の部屋情報を取得
+     */
+    getCurrentRoom() {
+        try {
+            const roomData = localStorage.getItem('currentRoom');
+            if (roomData) {
+                return JSON.parse(roomData);
+            }
+        } catch (error) {
+            console.error('部屋データの取得に失敗:', error);
+        }
+        return null;
+    }
+
+    /**
+     * 権限に基づいてUIの表示制限を適用
+     */
+    applyPermissionBasedUIRestrictions() {
+        const isAdmin = this.isCurrentUserAdmin();
+
+        console.log('権限チェック結果:', { isAdmin });
+
+        // 管理者以外に制限するタブ（設定タブのみ）
+        const restrictedTabs = ['settings'];
+
+        restrictedTabs.forEach(tabName => {
+            const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (tabButton) {
+                if (isAdmin) {
+                    // 管理者: 有効化
+                    tabButton.style.pointerEvents = 'auto';
+                    tabButton.style.opacity = '1';
+                    tabButton.classList.remove('disabled');
+                    tabButton.title = '';
+                } else {
+                    // 一般ユーザー: 無効化
+                    tabButton.style.pointerEvents = 'none';
+                    tabButton.style.opacity = '0.5';
+                    tabButton.classList.add('disabled');
+                    tabButton.title = '管理者のみ利用可能';
+                }
+            }
+        });
+
+        // 管理者以外に制限するボタン
+        const restrictedButtons = [
+            'assignSeats',
+            'assignRandom',
+            'clearAssignments',
+            'clearAllStudents',
+            'updateGrid',
+            'saveSettings',
+            'resetSettings',
+            'deleteRoom'
+        ];
+
+        restrictedButtons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                if (isAdmin) {
+                    // 管理者: 有効化
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                    button.style.cursor = 'pointer';
+                    button.title = '';
+                } else {
+                    // 一般ユーザー: 無効化
+                    button.disabled = true;
+                    button.style.opacity = '0.3';
+                    button.style.cursor = 'not-allowed';
+                    button.title = '管理者のみ利用可能';
+                }
+            }
+        });
+
+        // 設定フォーム要素の制限
+        const settingInputs = [
+            'gridRows',
+            'gridCols',
+            'maxStudentNumber'
+        ];
+
+        settingInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                if (isAdmin) {
+                    input.disabled = false;
+                    input.style.opacity = '1';
+                } else {
+                    input.disabled = true;
+                    input.style.opacity = '0.5';
+                }
+            }
+        });
+
+        // 一般ユーザー向けのメッセージ表示
+        if (!isAdmin) {
+            this.showPermissionRestrictedMessage();
+        }
+    }
+
+    /**
+     * 権限制限メッセージの表示
+     */
+    showPermissionRestrictedMessage() {
+        // 設定タブにメッセージを追加
+        const settingsSection = document.getElementById('settings');
+        if (settingsSection && !settingsSection.querySelector('.permission-notice')) {
+            const notice = document.createElement('div');
+            notice.className = 'permission-notice';
+            notice.innerHTML = `
+                <div class="notice-content">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>権限制限のお知らせ</h4>
+                    <p>
+                        現在あなたは一般ユーザーとしてログインしています。<br>
+                        設定変更・席割り当て機能は管理者のみ利用可能です。
+                    </p>
+                    <div class="notice-actions">
+                        <button onclick="location.reload()" class="btn-secondary">
+                            <i class="fas fa-refresh"></i>
+                            ページを更新
+                        </button>
+                    </div>
+                </div>
+            `;
+            notice.style.cssText = `
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                margin: 1rem 0;
+                text-align: center;
+                color: #64748b;
+            `;
+
+            settingsSection.insertBefore(notice, settingsSection.firstChild);
+        }
+
+        // 席割り当てタブにメッセージを追加（ボタンのみ制限）
+        const assignmentSection = document.getElementById('seating-assignment');
+        if (assignmentSection && !assignmentSection.querySelector('.permission-notice')) {
+            const notice = document.createElement('div');
+            notice.className = 'permission-notice';
+            notice.innerHTML = `
+                <div class="notice-content">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>閲覧モード</h4>
+                    <p>席割り当ての確認はできますが、変更は管理者のみ可能です。</p>
+                </div>
+            `;
+            notice.style.cssText = `
+                background: #f0f9ff;
+                border: 1px solid #0ea5e9;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin: 1rem 0;
+                text-align: center;
+                color: #0369a1;
+            `;
+
+            assignmentSection.insertBefore(notice, assignmentSection.firstChild);
+        }
+    }
+
+    /**
+     * 出席番号設定の概要を更新
+     */
+    updateAttendanceSummary() {
+        const summaryContainer = document.getElementById('attendanceSummary');
+        if (!summaryContainer) return;
+
+        const maxNumber = parseInt(this.maxStudentNumberInput?.value) || 40;
+
+        // 欠番リストを使用
+        const missingNumbers = [...this.missingNumbers];
+
+        // 座席数を取得
+        const totalSeats = this.seatManager ? this.seatManager.getTotalValidSeats() : 25;
+
+        // 出席予定者数を計算
+        const presentStudents = maxNumber - missingNumbers.length;
+
+        // バランスチェック
+        const isBalanced = presentStudents <= totalSeats;
+
+        summaryContainer.innerHTML = `
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">全体人数:</span>
+                    <span class="stat-value">${maxNumber}人</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">欠番:</span>
+                    <span class="stat-value">${missingNumbers.length}人</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">出席予定:</span>
+                    <span class="stat-value">${presentStudents}人</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">利用可能座席:</span>
+                    <span class="stat-value">${totalSeats}席</span>
+                </div>
+                <div class="balance-check ${isBalanced ? 'balanced' : 'unbalanced'}">
+                    <i class="fas ${isBalanced ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                    <span>${isBalanced ? '座席数は十分です' : '座席数が不足しています'}</span>
+                </div>
+            </div>
+        `;
+
+        // スタイルを動的に追加
+        if (!document.getElementById('attendance-summary-styles')) {
+            const style = document.createElement('style');
+            style.id = 'attendance-summary-styles';
+            style.textContent = `
+                .summary-stats {
+                    background: #f8fafc;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                .stat-item {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 0.5rem 0;
+                }
+                .stat-label {
+                    color: #64748b;
+                }
+                .stat-value {
+                    font-weight: bold;
+                    color: #334155;
+                }
+                .balance-check {
+                    margin-top: 1rem;
+                    padding: 0.75rem;
+                    border-radius: 0.375rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .balance-check.balanced {
+                    background: #dcfce7;
+                    color: #166534;
+                }
+                .balance-check.unbalanced {
+                    background: #fef2f2;
+                    color: #dc2626;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    /**
+     * 欠番グリッドを更新
+     */
+    updateMissingNumbersGrid() {
+        if (!this.missingNumbersGrid) return;
+
+        const maxNumber = parseInt(this.maxStudentNumberInput?.value) || 25;
+
+        // グリッドをクリア
+        this.missingNumbersGrid.innerHTML = '';
+
+        // 番号ボタンを生成
+        for (let i = 1; i <= maxNumber; i++) {
+            const numberBtn = document.createElement('button');
+            numberBtn.className = 'missing-number-btn';
+            numberBtn.textContent = i;
+            numberBtn.title = `番号${i}を欠番として選択/解除`;
+
+            // 選択状態を反映
+            if (this.missingNumbers.includes(i)) {
+                numberBtn.classList.add('selected');
+            }
+
+            // クリックイベント
+            numberBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleMissingNumber(i);
+            });
+
+            this.missingNumbersGrid.appendChild(numberBtn);
+        }
+
+        // スタイルを動的に追加
+        if (!document.getElementById('missing-numbers-styles')) {
+            const style = document.createElement('style');
+            style.id = 'missing-numbers-styles';
+            style.textContent = `
+                .missing-numbers-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    padding: 1rem;
+                    background: #f8fafc;
+                    border-radius: 0.5rem;
+                    max-height: 200px;
+                    overflow-y: auto;
+                }
+                .missing-number-btn {
+                    width: 40px;
+                    height: 40px;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 0.375rem;
+                    background: white;
+                    color: #64748b;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .missing-number-btn:hover {
+                    border-color: #94a3b8;
+                    background: #f1f5f9;
+                }
+                .missing-number-btn.selected {
+                    background: #dc2626;
+                    border-color: #dc2626;
+                    color: white;
+                }
+                .missing-number-btn.selected:hover {
+                    background: #b91c1c;
+                    border-color: #b91c1c;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    /**
+     * 欠番の選択/解除を切り替え
+     */
+    toggleMissingNumber(number) {
+        const index = this.missingNumbers.indexOf(number);
+
+        if (index === -1) {
+            // 選択されていない場合は追加
+            this.missingNumbers.push(number);
+            this.missingNumbers.sort((a, b) => a - b);
+        } else {
+            // 選択されている場合は削除
+            this.missingNumbers.splice(index, 1);
+        }
+
+        // UIを更新
+        this.updateMissingNumbersGrid();
+        this.updateAttendanceSummary();
+
+        console.log('欠番リスト更新:', this.missingNumbers);
+    }
+
+    /**
+     * 指定された番号を欠番リストから除外
+     */
+    removeFromMissingNumbers(number) {
+        const index = this.missingNumbers.indexOf(number);
+
+        if (index !== -1) {
+            this.missingNumbers.splice(index, 1);
+
+            // UIを更新
+            this.updateMissingNumbersGrid();
+            this.updateAttendanceSummary();
+
+            console.log(`番号${number}を欠番リストから除外しました:`, this.missingNumbers);
+            this.showMessage(`番号${number}番が登録されたため、欠番から除外されました`, 'info');
+        }
+    }
+
+    /**
+     * 出席番号設定の取得
+     */
+    getAttendanceSettings() {
+        const maxNumber = parseInt(this.maxStudentNumberInput?.value) || 40;
+        const missingNumbers = [...this.missingNumbers];
+
+        return {
+            maxNumber,
+            missingNumbers,
+            presentCount: maxNumber - missingNumbers.length
+        };
+    }
+
+    /**
+     * 欠番を考慮したランダム割り当て処理
+     */
+    handleRandomAssignment() {
+        const attendanceSettings = this.getAttendanceSettings();
+        const { maxNumber, missingNumbers, presentCount } = attendanceSettings;
+
+        // 座席数チェック
+        const totalSeats = this.seatManager ? this.seatManager.getTotalValidSeats() : 25;
+        if (presentCount > totalSeats) {
+            this.showMessage(`出席予定者数(${presentCount}人)が座席数(${totalSeats}席)を超えています。出席番号設定を確認してください。`, 'error');
+            return;
+        }
+
+        // 出席予定の生徒番号リストを生成
+        const presentNumbers = [];
+        for (let i = 1; i <= maxNumber; i++) {
+            if (!missingNumbers.includes(i)) {
+                presentNumbers.push(i);
+            }
+        }
+
+        // 仮想的な生徒データを作成
+        const virtualStudents = presentNumbers.map(number => ({
+            name: `生徒${number}`,
+            number: number,
+            preferences: [],
+            assigned: false,
+            assignedSeat: null
+        }));
+
+        // 既存の生徒データを一時的に保存
+        const originalStudents = [...this.students];
+
+        // 仮想データで割り当てを実行
+        this.students = virtualStudents;
+        this.seatManager.students = virtualStudents;
+
+        // ランダム割り当て実行
+        this.seatManager.assignRandomSeats();
+
+        // 元の生徒データを復元
+        this.students = originalStudents;
+        this.seatManager.students = originalStudents;
+
+        // 成功メッセージ
+        this.showMessage(`${presentCount}人の生徒をランダムに配置しました（欠番 ${missingNumbers.length}人を除く）`, 'success');
+
+        // 割り当て結果の詳細を表示
+        if (missingNumbers.length > 0) {
+            const missingList = missingNumbers.join(', ');
+            this.showMessage(`欠番: ${missingList}`, 'info');
+        }
+    }
+
+    /**
+     * 部屋共有リンクをコピー
+     */
+    async handleCopyRoomLink() {
+        try {
+            const roomInfo = this.getCurrentRoom();
+            if (!roomInfo || !roomInfo.id) {
+                this.showMessage('部屋IDが取得できませんでした', 'error');
+                return;
+            }
+
+            // 共有URLを生成（login.htmlに部屋IDパラメータ付き）
+            const baseURL = window.location.origin + window.location.pathname;
+            const loginPath = baseURL.replace('index.html', 'login.html');
+            const shareURL = `${loginPath}?room=${encodeURIComponent(roomInfo.id)}`;
+
+            // クリップボードにコピー
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(shareURL);
+                this.showMessage('共有リンクをコピーしました！', 'success');
+            } else {
+                // フォールバック: テキストエリアを使用
+                this.copyToClipboardFallback(shareURL);
+                this.showMessage('共有リンクをコピーしました！', 'success');
+            }
+
+            // 視覚的フィードバック
+            this.showShareLinkModal(shareURL, roomInfo.id);
+
+        } catch (error) {
+            console.error('共有リンクのコピーエラー:', error);
+            this.showMessage('共有リンクのコピーに失敗しました', 'error');
+        }
+    }
+
+    /**
+     * クリップボードコピーのフォールバック
+     */
+    copyToClipboardFallback(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('フォールバックコピー失敗:', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    /**
+     * 共有リンクモーダルを表示
+     */
+    showShareLinkModal(shareURL, roomId) {
+        // 既存のモーダルがあれば削除
+        const existingModal = document.getElementById('shareLinkModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // モーダルを作成
+        const modal = document.createElement('div');
+        modal.id = 'shareLinkModal';
+        modal.className = 'share-modal';
+        modal.innerHTML = `
+            <div class="share-modal-backdrop" onclick="this.parentElement.remove()"></div>
+            <div class="share-modal-content">
+                <div class="share-modal-header">
+                    <h3><i class="fas fa-share-alt"></i> 部屋を共有</h3>
+                    <button class="modal-close" onclick="this.closest('.share-modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="share-modal-body">
+                    <p>この部屋に参加するためのリンクをコピーしました。</p>
+                    <div class="share-info">
+                        <div class="share-item">
+                            <label>部屋ID:</label>
+                            <code class="room-id-code">${roomId}</code>
+                        </div>
+                        <div class="share-item">
+                            <label>共有リンク:</label>
+                            <div class="share-url-container">
+                                <input type="text" class="share-url-input" value="${shareURL}" readonly>
+                                <button class="btn-copy-again" onclick="navigator.clipboard.writeText('${shareURL}'); alert('再度コピーしました！')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="share-instructions">
+                        <p><i class="fas fa-info-circle"></i> このリンクを他の人に送ると、ログイン後に自動でこの部屋に参加できます。</p>
+                    </div>
+                </div>
+                <div class="share-modal-footer">
+                    <button class="btn-primary" onclick="this.closest('.share-modal').remove()">
+                        <i class="fas fa-check"></i>
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // スタイルを追加
+        if (!document.getElementById('share-modal-styles')) {
+            const style = document.createElement('style');
+            style.id = 'share-modal-styles';
+            style.textContent = `
+                .share-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .share-modal-backdrop {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                }
+                .share-modal-content {
+                    background: white;
+                    border-radius: 0.75rem;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    position: relative;
+                    z-index: 1;
+                }
+                .share-modal-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 1.5rem;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+                .share-modal-header h3 {
+                    margin: 0;
+                    color: #1e293b;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                .modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 1.25rem;
+                    color: #64748b;
+                    cursor: pointer;
+                    padding: 0.5rem;
+                    border-radius: 0.375rem;
+                }
+                .modal-close:hover {
+                    background: #f1f5f9;
+                    color: #334155;
+                }
+                .share-modal-body {
+                    padding: 1.5rem;
+                }
+                .share-info {
+                    background: #f8fafc;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    margin: 1rem 0;
+                }
+                .share-item {
+                    margin: 0.75rem 0;
+                }
+                .share-item label {
+                    display: block;
+                    font-weight: 600;
+                    color: #374151;
+                    margin-bottom: 0.25rem;
+                }
+                .room-id-code {
+                    background: #1e293b;
+                    color: #f1f5f9;
+                    padding: 0.5rem;
+                    border-radius: 0.375rem;
+                    font-family: monospace;
+                    font-size: 1.1rem;
+                    letter-spacing: 0.05em;
+                }
+                .share-url-container {
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: center;
+                }
+                .share-url-input {
+                    flex: 1;
+                    padding: 0.5rem;
+                    border: 1px solid #d1d5db;
+                    border-radius: 0.375rem;
+                    font-size: 0.875rem;
+                    background: white;
+                }
+                .btn-copy-again {
+                    padding: 0.5rem;
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    border-radius: 0.375rem;
+                    cursor: pointer;
+                }
+                .btn-copy-again:hover {
+                    background: #2563eb;
+                }
+                .share-instructions {
+                    background: #dbeafe;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                }
+                .share-instructions p {
+                    margin: 0;
+                    color: #1e40af;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 0.5rem;
+                }
+                .share-modal-footer {
+                    padding: 1.5rem;
+                    border-top: 1px solid #e2e8f0;
+                    text-align: right;
+                }
+                .clickable-room-id {
+                    cursor: pointer;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.375rem;
+                    transition: background-color 0.2s ease;
+                }
+                .clickable-room-id:hover {
+                    background-color: #f1f5f9;
+                    color: #3b82f6;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(modal);
+
+        // 3秒後に自動で閉じる
+        setTimeout(() => {
+            if (modal && modal.parentNode) {
+                modal.remove();
+            }
+        }, 8000);
+    }
+
 }
 
 // グローバルに公開

@@ -465,6 +465,67 @@ const RandomUtils = {
     }
 };
 
+/**
+ * URLユーティリティ
+ */
+const URLUtils = {
+    /**
+     * URLパラメータを取得
+     */
+    getParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    },
+
+    /**
+     * URLパラメータを設定
+     */
+    setParam(name, value) {
+        const url = new URL(window.location);
+        if (value) {
+            url.searchParams.set(name, value);
+        } else {
+            url.searchParams.delete(name);
+        }
+        window.history.replaceState({}, '', url);
+    },
+
+    /**
+     * 部屋IDをURLに設定
+     */
+    setRoomId(roomId) {
+        this.setParam('room', roomId);
+    },
+
+    /**
+     * URLから部屋IDを取得
+     */
+    getRoomId() {
+        return this.getParam('room');
+    },
+
+    /**
+     * 部屋ID付きURLを生成
+     */
+    generateRoomURL(roomId) {
+        const baseURL = window.location.origin + window.location.pathname;
+        return `${baseURL}?room=${encodeURIComponent(roomId)}`;
+    },
+
+    /**
+     * URLをクリップボードにコピー
+     */
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            console.error('クリップボードコピーエラー:', error);
+            return false;
+        }
+    }
+};
+
 // グローバルに公開
 window.ArrayUtils = ArrayUtils;
 window.ValidationUtils = ValidationUtils;
@@ -473,6 +534,7 @@ window.StorageUtils = StorageUtils;
 window.FormatUtils = FormatUtils;
 window.EventUtils = EventUtils;
 window.RandomUtils = RandomUtils;
+window.URLUtils = URLUtils;
 
 // 後方互換性のためのエイリアス
 window.Utils = {
@@ -482,7 +544,8 @@ window.Utils = {
     Storage: StorageUtils,
     Format: FormatUtils,
     Event: EventUtils,
-    Random: RandomUtils
+    Random: RandomUtils,
+    URL: URLUtils
 };
 
 console.log('ユーティリティライブラリが読み込まれました');
